@@ -6,16 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <title>Suzhou Story Map 苏州</title>
 
-    <!--
-  SUZHOU STORY MAP — one file, no build step, no cost.
-  Map: Leaflet + CARTO basemap tiles built on OpenStreetMap data (free, attribution required, light non-commercial use).
-  Host free: GitHub Pages, Cloudflare Pages or Netlify. Or just double-click this file.
 
-  TO EDIT:
-  - Stops live in the STOPS array near the bottom. Add, remove or reorder objects; numbering follows array order.
-  - Photos: set img: "photos/humble.jpg" and credit: "Photo: …" on a stop. Without img, a lattice-window graphic is shown.
-  - Coordinates: right-click the map to read lat/lng for any spot, then paste into the stop.
--->
 
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -24,8 +15,7 @@
         href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&display=swap">
 
     <style>
-        /* Layout: full-height split. Map fills the left, a scrolling story column sits on the right.
-     On phones the map stacks on top and the story scrolls beneath it. */
+
         :root {
             --paper: #eef1ee;
             /* whitewashed wall, nudged toward green */
@@ -543,6 +533,10 @@
             border-top-color: var(--line-2)
         }
 
+        .art .badge{position:absolute;left:12px;top:12px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+        background:var(--panel);color:var(--ink);border:2px solid var(--ink);font:700 20px/1 var(--display)}
+        .stop.is-active .art .badge{background:var(--jade);border-color:var(--jade);color:#fff}
+
         @media (prefers-reduced-motion:reduce) {
 
             .stop,
@@ -620,7 +614,7 @@
                 kind: { en: "Old street", zh: "古街" },
                 name: { en: "Pingjiang Road", zh: "平江路" },
                 img: "images/pingjianglu.jpg",
-                credit: "",
+                credit: "https://k.sina.cn/article_1863932734_p6f195b3e00100e9ul.html",
                 blurb: {
                     en: "A canal runs the length of this old lane, with stone bridges, whitewashed houses and tea rooms along the water. The layout is close to what a stone map carved in 1229 shows, which makes it one of the best places to see Suzhou as a Song-dynasty water town.",
                     zh: "一条古运河贯穿整条老街，两岸是石桥、粉墙黛瓦和临水茶馆。街巷格局与 1229 年刻成的《平江图》大体一致，是感受宋代水城苏州的好去处。"
@@ -633,7 +627,7 @@
                 kind: { en: "Garden", zh: "园林" },
                 name: { en: "Lion Grove Garden", zh: "狮子林" },
                 img: "images/shizilin.webp",
-                credit: "",
+                credit: "https://baike.baidu.com/item/%E7%8B%AE%E5%AD%90%E6%9E%97/1025067",
                 blurb: {
                     en: "Founded in 1342 by a Buddhist community, this garden is famous for its rockery: a tangle of Taihu limestone peaks, caves and passages that visitors can walk through. The rocks are said to resemble lions, which gave the garden its name.",
                     zh: "此园始建于元至正二年（1342 年），由僧人所建，以假山闻名：太湖石堆叠成峰峦、洞壑和曲折的通道，可以穿行其间。传说石形似狮，园名由此而来。"
@@ -646,7 +640,7 @@
                 kind: { en: "Garden", zh: "园林" },
                 name: { en: "Humble Administrator’s Garden", zh: "拙政园" },
                 img: "images/zhuozhengyuan.jpg",
-                credit: "",
+                credit: "https://ylj.suzhou.gov.cn/szsylj/ylml/201904/f64435b7b293433cb70bc9734e76eff2.shtml",
                 blurb: {
                     en: "The largest of Suzhou’s classical gardens, laid out in the early 1500s by a retired imperial official. Water covers much of the grounds, and pavilions, bridges and corridors are arranged so that each turn gives a new view. It belongs to the group of Suzhou gardens on the UNESCO World Heritage list.",
                     zh: "苏州古典园林中面积最大的一座，由一位退隐的明代官员于 16 世纪初营建。园中水面开阔，亭台、廊桥错落，每一转弯都有新的景致。它属于联合国教科文组织世界遗产名录中的苏州古典园林。"
@@ -659,7 +653,7 @@
                 kind: { en: "Museum", zh: "博物馆" },
                 name: { en: "Suzhou Museum", zh: "苏州博物馆" },
                 img: "images/suzhoubowuguan.jpg",
-                credit: "",
+                credit: "https://k.sina.cn/article_5675440730_152485a5a02001xn28.html",
                 blurb: {
                     en: "Designed by architect I. M. Pei, whose family came from Suzhou, and opened in 2006 beside the Humble Administrator’s Garden. Pei used grey slate and white walls to echo the old town’s roofs and plaster, and reworked the garden courtyard in a modern way. The collections focus on local art, craft and archaeology.",
                     zh: "由祖籍苏州的建筑师贝聿铭设计，2006 年落成，紧邻拙政园。他用灰色石板和白墙呼应老城的瓦顶与粉墙，并以现代手法重新诠释庭院。馆藏以本地艺术、工艺和考古文物为主。"
@@ -672,7 +666,7 @@
                 kind: { en: "Garden", zh: "园林" },
                 name: { en: "Master of the Nets Garden", zh: "网师园" },
                 img: "images/wangshiyuan.jpg",
-                credit: "",
+                credit: "https://www.deskcity.org/download/219347-0-0x0.html",
                 blurb: {
                     en: "A small garden that packs pavilions, a pond and rockeries into less than a hectare. It has Southern Song origins and was rebuilt in the 18th century. A courtyard here was the model for the Astor Court at the Metropolitan Museum of Art in New York.",
                     zh: "一座小巧的园林，在不足一公顷的空间里布置了亭阁、水池和假山。园子始于南宋，18 世纪重建。纽约大都会艺术博物馆的“明轩”即以其中一处庭院为蓝本。"
@@ -685,7 +679,7 @@
                 kind: { en: "City gate", zh: "城门" },
                 name: { en: "Panmen Gate", zh: "盘门" },
                 img: "images/panmen.jpg",
-                credit: "",
+                credit: "https://www.panmen.com.cn/About/1.html",
                 blurb: {
                     en: "Panmen is one of the few surviving city gates in China that combines a water gate and a land gate. The site goes back to the Wu kingdom, more than 2,500 years ago, though the present structure is much later. Nearby are the Song-dynasty Ruiguang Pagoda and the arched Wumen Bridge.",
                     zh: "盘门是中国现存少数水陆城门并置的古城门之一。此处可追溯到两千五百多年前的吴国，现存建筑则晚得多。附近有宋代的瑞光塔和拱形的吴门桥。"
@@ -698,7 +692,7 @@
                 kind: { en: "Garden", zh: "园林" },
                 name: { en: "Lingering Garden", zh: "留园" },
                 img: "images/liuyuan.webp",
-                credit: "",
+                credit: "https://baike.baidu.com/item/%E7%95%99%E5%9B%AD/453654",
                 blurb: {
                     en: "Famous for its long covered corridors, richly decorated halls and a Taihu rock more than six metres tall. The garden took its present form in the 19th century on older Ming foundations. It is the one to see if you like architecture and stone.",
                     zh: "以悠长的复廊、装饰精美的厅堂，以及一块高六米多的太湖石而闻名。园子在明代旧址上于 19 世纪形成今日面貌。喜欢建筑与奇石的人不应错过。"
@@ -710,6 +704,8 @@
                 lat: 31.3150, lng: 120.5650, zoom: 16,
                 kind: { en: "Temple", zh: "寺庙" },
                 name: { en: "Hanshan Temple", zh: "寒山寺" },
+                img: "images/hanshansi.jpeg",
+                credit: "https://xinwen.bjd.com.cn/content/s667121a8e4b0f6c5abd61576.html",
                 blurb: {
                     en: "A Buddhist temple by the Grand Canal, first built in the 6th century. A Tang-dynasty poem about a night moored near Maple Bridge made it known across East Asia. Its bell is rung 108 times on New Year’s Eve, a tradition that draws many visitors, including many from Japan.",
                     zh: "一座临近大运河的佛寺，始建于六世纪。一首描写夜泊枫桥的唐诗让它在东亚闻名。每年除夕夜会撞钟一百零八下，吸引了许多游客，其中不乏来自日本的客人。"
@@ -722,7 +718,7 @@
                 kind: { en: "Old street", zh: "古街" },
                 name: { en: "Shantang Street", zh: "山塘街" },
                 img: "images/shantangjie.jpg",
-                credit: "",
+                credit: "https://m.ctrip.com/webapp/you/gspoi/photos/81719.html?seo=0&ishidenavbar=yes&videoId=1924165&from=https%3A%2F%2Fm.ctrip.com%2Fwebapp%2Fyou%2Fsight%2Fsuzhou11%2F25486.html%3Fext-shelfPage%3Dctrip_shelf_seo",
                 blurb: {
                     en: "A canal-side street that runs from the old city’s Changmen gate to Tiger Hill, said to have been dug and built by the Tang poet and governor Bai Juyi around 825. Shops, snack stalls, old guild halls and stone bridges line the water, and traditional boats run along the canal.",
                     zh: "一条临水的老街，从老城阊门通向虎丘，相传由唐代诗人、苏州刺史白居易在 825 年前后主持开凿修建。沿河是商铺、小吃摊、旧会馆和石桥，河上有传统游船往来。"
@@ -735,7 +731,7 @@
                 kind: { en: "Hill and pagoda", zh: "山丘与古塔" },
                 name: { en: "Tiger Hill", zh: "虎丘" },
                 img: "images/huqiu.jpg",
-                credit: "",
+                credit: "https://m.ctrip.com/webapp/you/sight/suzhou11/144412.html?ext-shelfPage=ctrip_shelf_seo",
                 blurb: {
                     en: "A small hill said to hold the tomb of King Helü of Wu, who ruled in the 6th century BCE. The seven-storey Yunyan Pagoda on top, completed in 961, leans noticeably and has been called the Leaning Tower of China. Below it the Sword Pond sits in a gorge of cut rock.",
                     zh: "一座小山，相传吴王阖闾葬于此，他生活在公元前六世纪。山顶的云岩寺塔建成于 961 年，共七层，明显倾斜，被称为“中国的比萨斜塔”。塔下是嵌在岩壁间的剑池。"
@@ -748,7 +744,7 @@
                 kind: { en: "Modern Suzhou", zh: "现代苏州" },
                 name: { en: "Gate to the East", zh: "东方之门" },
                 img: "images/dongfangzhimen.webp",
-                credit: "",
+                credit: "https://ecywang.com/image3512352809120973.html",
                 blurb: {
                     en: "A 300-metre arch of two towers beside Jinji Lake in the Suzhou Industrial Park. It shows the other side of the city: a modern business district facing the water. Locals joke that its shape looks like a pair of trousers.",
                     zh: "金鸡湖畔工业园区内的双塔拱门，高约三百米，展现苏州现代的一面：面向湖水的新商务区。当地人戏称它的形状像一条裤子。"
@@ -806,8 +802,9 @@
             const stopsEl = document.getElementById('stops');
             STOPS.forEach((s, i) => {
                 const media = s.img
-                    ? `<figure><img src="${s.img}" alt="${s.name.en}" loading="lazy">${s.credit ? `<figcaption>${s.credit}</figcaption>` : ''}</figure>`
-                    : lattice(i);
+                    // ? `<figure><img src="${s.img}" alt="${s.name.en}" loading="lazy">${s.credit ? `<figcaption>${s.credit}</figcaption>` : ''}</figure>`
+                      ? `<figure><img src="${s.img}" alt="${s.name.en}" loading="lazy"><span class="badge">${i + 1}</span>${s.credit ? `<figcaption>${s.credit}</figcaption>` : ''}</figure>`    
+                : lattice(i);
                 const osm = `https://www.openstreetmap.org/?mlat=${s.lat}&mlon=${s.lng}#map=17/${s.lat}/${s.lng}`;
                 const a = document.createElement('article');
                 a.className = 'stop';
