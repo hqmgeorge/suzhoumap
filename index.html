@@ -805,7 +805,9 @@
                     // ? `<figure><img src="${s.img}" alt="${s.name.en}" loading="lazy">${s.credit ? `<figcaption>${s.credit}</figcaption>` : ''}</figure>`
                       ? `<figure><img src="${s.img}" alt="${s.name.en}" loading="lazy"><span class="badge">${i + 1}</span>${s.credit ? `<figcaption>${s.credit}</figcaption>` : ''}</figure>`    
                 : lattice(i);
-                const osm = `https://www.openstreetmap.org/?mlat=${s.lat}&mlon=${s.lng}#map=17/${s.lat}/${s.lng}`;
+                // const osm = `https://www.openstreetmap.org/?mlat=${s.lat}&mlon=${s.lng}#map=17/${s.lat}/${s.lng}`;
+                const gmap = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.name.en + ' Suzhou')}`;
+                const amap = `https://uri.amap.com/search?keyword=${encodeURIComponent(s.name.zh)}&city=${encodeURIComponent('苏州')}`;
                 const a = document.createElement('article');
                 a.className = 'stop';
                 a.id = 'stop-' + (i + 1);
@@ -822,7 +824,9 @@
       </dl>
       <p class="meta">
         <span><span class="en">Stop ${i + 1} of ${N}</span><span class="zh">第 ${i + 1} 站 / 共 ${N} 站</span></span>
-        <a href="${osm}" target="_blank" rel="noopener"><span class="en">Open in OpenStreetMap</span><span class="zh">在 OpenStreetMap 中打开</span></a>
+        // <a href="${osm}" target="_blank" rel="noopener"><span class="en">Open in OpenStreetMap</span><span class="zh">在 OpenStreetMap 中打开</span></a>
+        <a href="${gmap}" target="_blank" rel="noopener"><span class="en">Google Maps</span><span class="zh">谷歌地图</span></a>
+        <a href="${amap}" target="_blank" rel="noopener"><span class="en">Gaode (Amap)</span><span class="zh">高德地图</span></a>
       </p>`;
                 stopsEl.appendChild(a);
             });
