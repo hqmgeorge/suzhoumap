@@ -1,3 +1,12 @@
 this folder holds all the images used and their credits
-pingjianglu: https://sl.bing.net/bk8R2iCTYCy
-
+pingjianglu: https://k.sina.cn/article_1863932734_p6f195b3e00100e9ul.html
+shizilin: https://baike.baidu.com/item/%E7%8B%AE%E5%AD%90%E6%9E%97/1025067
+zhuozhengyuan: https://ylj.suzhou.gov.cn/szsylj/ylml/201904/f64435b7b293433cb70bc9734e76eff2.shtml
+suzhoubowuguan: https://k.sina.cn/article_5675440730_152485a5a02001xn28.html
+wangshiyuan: https://www.deskcity.org/download/219347-0-0x0.html
+panmen: https://www.panmen.com.cn/About/1.html
+liuyuan: https://baike.baidu.com/item/%E7%95%99%E5%9B%AD/453654
+hanshansi: https://xinwen.bjd.com.cn/content/s667121a8e4b0f6c5abd61576.html
+shantangjie: https://m.ctrip.com/webapp/you/gspoi/photos/81719.html?seo=0&ishidenavbar=yes&videoId=1924165&from=https%3A%2F%2Fm.ctrip.com%2Fwebapp%2Fyou%2Fsight%2Fsuzhou11%2F25486.html%3Fext-shelfPage%3Dctrip_shelf_seo
+huqiu: https://m.ctrip.com/webapp/you/sight/suzhou11/144412.html?ext-shelfPage=ctrip_shelf_seo
+dongfangzhimen: https://ecywang.com/image3512352809120973.html
