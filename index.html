@@ -1,794 +1,590 @@
 <!doctype html>
-<html lang="en" data-lang="en">
-
+<html lang="en" data-lang="en" data-plan="classic">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-    <title>Suzhou Story Map 苏州</title>
-
-
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&display=swap">
-
-    <style>
-
-        :root {
-            --paper: #eef1ee;
-            /* whitewashed wall, nudged toward green */
-            --panel: #fafbf9;
-            --wash: #e3e9e4;
-            --ink: #1b2528;
-            /* roof-tile blue-black */
-            --ink-2: #4b5a5e;
-            --line: #d3dad5;
-            --line-2: #bcc7c0;
-            --jade: #2b6b5a;
-            /* the one accent */
-            --seal: #b3392d;
-            /* used only for the small 苏 seal */
-            --display: "Cormorant Garamond", "Noto Serif SC", "Songti SC", "STSong", serif;
-            --body: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, -apple-system, "Segoe UI", sans-serif;
-            --gut: 22px;
-            color-scheme: light;
-        }
-
-        @media (prefers-color-scheme:dark) {
-            :root {
-                --paper: #0e1416;
-                --panel: #141c1f;
-                --wash: #1b2629;
-                --ink: #e5ebe8;
-                --ink-2: #9db0af;
-                --line: #27353a;
-                --line-2: #385056;
-                --jade: #72c4aa;
-                --seal: #d9564a;
-                color-scheme: dark;
-            }
-        }
-
-        * {
-            box-sizing: border-box
-        }
-
-        html,
-        body {
-            height: 100%;
-            margin: 0
-        }
-
-        body {
-            background: var(--paper);
-            color: var(--ink);
-            font-family: var(--body);
-            font-size: 15px;
-            line-height: 1.65;
-            -webkit-font-smoothing: antialiased
-        }
-
-        /* language switching: every text has an .en and a .zh twin */
-        html[data-lang="en"] .zh {
-            display: none
-        }
-
-        html[data-lang="zh"] .en {
-            display: none
-        }
-
-        .app {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) minmax(380px, 34rem);
-            height: 100vh;
-            height: 100dvh
-        }
-
-        #map {
-            height: 100%;
-            min-height: 0;
-            background: var(--wash)
-        }
-
-        .panel {
-            position: relative;
-            overflow-y: auto;
-            overscroll-behavior: contain;
-            background: var(--panel);
-            border-left: 1px solid var(--line);
-            min-width: 0
-        }
-
-        @media (max-width:820px) {
-            .app {
-                grid-template-columns: minmax(0, 1fr);
-                grid-template-rows: minmax(220px, 42%) minmax(0, 1fr)
-            }
-
-            .panel {
-                border-left: 0;
-                border-top: 1px solid var(--line)
-            }
-
-            :root {
-                --gut: 18px
-            }
-        }
-
-        /* ---------- panel header ---------- */
-        .bar {
-            position: sticky;
-            top: 0;
-            z-index: 5;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 10px var(--gut);
-            background: var(--panel);
-            border-bottom: 1px solid var(--line)
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            min-width: 0
-        }
-
-        .seal {
-            flex: none;
-            width: 28px;
-            height: 28px;
-            display: grid;
-            place-items: center;
-            background: var(--seal);
-            color: #fff;
-            font: 700 16px/1 "Noto Serif SC", "Songti SC", serif;
-            border-radius: 2px
-        }
-
-        .brand-name {
-            font-weight: 500;
-            font-size: 14px;
-            letter-spacing: .02em;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis
-        }
-
-        .lang {
-            display: flex;
-            border: 1px solid var(--line-2);
-            border-radius: 999px;
-            padding: 2px;
-            flex: none
-        }
-
-        .lang button {
-            font: 500 13px var(--body);
-            border: 0;
-            background: transparent;
-            color: var(--ink-2);
-            padding: 4px 12px;
-            border-radius: 999px;
-            cursor: pointer
-        }
-
-        .lang button[aria-pressed="true"] {
-            background: var(--ink);
-            color: var(--panel)
-        }
-
-        .lang button:focus-visible,
-        .pager button:focus-visible,
-        .go:focus-visible,
-        .meta a:focus-visible {
-            outline: 2px solid var(--jade);
-            outline-offset: 2px
-        }
-
-        /* ---------- intro ---------- */
-        .intro {
-            padding: 34px var(--gut) 30px
-        }
-
-        .eyebrow {
-            margin: 0 0 14px;
-            font-size: 12px;
-            font-weight: 500;
-            letter-spacing: .12em;
-            text-transform: uppercase;
-            color: var(--jade)
-        }
-
-        html[data-lang="zh"] .eyebrow {
-            letter-spacing: .2em
-        }
-
-        h1 {
-            margin: 0;
-            font: 600 clamp(34px, 4.6vw, 46px)/1.08 var(--display);
-            text-wrap: balance
-        }
-
-        .intro .alt {
-            margin: 8px 0 0;
-            font: 600 20px/1.3 var(--display);
-            color: var(--ink-2)
-        }
-
-        .intro .lede {
-            margin: 20px 0 0;
-            max-width: 34em;
-            color: var(--ink)
-        }
-
-        .go {
-            margin-top: 22px;
-            font: 500 14px var(--body);
-            color: var(--ink);
-            background: transparent;
-            border: 1px solid var(--line-2);
-            padding: 8px 16px;
-            border-radius: 999px;
-            cursor: pointer
-        }
-
-        .go:hover {
-            border-color: var(--jade);
-            color: var(--jade)
-        }
-
-        /* ---------- stops ---------- */
-        .stops {
-            padding-bottom: 40vh
-        }
-
-        .stop {
-            padding: 30px var(--gut) 34px;
-            border-top: 1px solid var(--line);
-            scroll-margin-top: 56px;
-            opacity: .5;
-            transition: opacity .35s
-        }
-
-        .stop:hover {
-            opacity: .85
-        }
-
-        .stop.is-active {
-            opacity: 1
-        }
-
-        .art {
-            margin: 0 0 18px;
-            border-radius: 3px;
-            overflow: hidden;
-            background: var(--wash);
-            aspect-ratio: 320/150
-        }
-
-        .art svg,
-        .art img {
-            display: block;
-            width: 100%;
-            height: 100%;
-            object-fit: cover
-        }
-
-        .art figure {
-            margin: 0;
-            height: 100%;
-            position: relative
-        }
-
-        .art figcaption {
-            position: absolute;
-            right: 0;
-            bottom: 0;
-            padding: 2px 8px;
-            font-size: 11px;
-            background: color-mix(in srgb, var(--panel) 80%, transparent);
-            color: var(--ink-2)
-        }
-
-        .art .bg {
-            fill: var(--wash)
-        }
-
-        .art .ln {
-            fill: none;
-            stroke: var(--line-2);
-            stroke-width: 1
-        }
-
-        .art .gate {
-            fill: var(--ink)
-        }
-
-        .art .hole {
-            fill: var(--panel)
-        }
-
-        .art .num {
-            font-family: "Cormorant Garamond", serif;
-            font-size: 48px;
-            font-weight: 600;
-            fill: var(--ink);
-            transition: fill .3s
-        }
-
-        .stop.is-active .num {
-            fill: var(--jade)
-        }
-
-        .kind {
-            margin: 0 0 8px;
-            font-size: 12px;
-            font-weight: 500;
-            letter-spacing: .12em;
-            text-transform: uppercase;
-            color: var(--jade)
-        }
-
-        html[data-lang="zh"] .kind {
-            letter-spacing: .2em
-        }
-
-        h2 {
-            margin: 0;
-            font: 600 30px/1.15 var(--display);
-            text-wrap: balance
-        }
-
-        .alt {
-            margin: 6px 0 0;
-            font: 600 17px/1.3 var(--display);
-            color: var(--ink-2)
-        }
-
-        .blurb {
-            margin: 16px 0 0;
-            max-width: 36em
-        }
-
-        html[data-lang="zh"] .blurb,
-        html[data-lang="zh"] dd,
-        html[data-lang="zh"] .lede {
-            line-height: 1.9;
-            letter-spacing: .015em
-        }
-
-        dl {
-            margin: 18px 0 0;
-            display: grid;
-            gap: 12px
-        }
-
-        dl>div {
-            display: grid;
-            grid-template-columns: 7.5em minmax(0, 1fr);
-            gap: 12px;
-            padding-top: 12px;
-            border-top: 1px dotted var(--line-2)
-        }
-
-        dt {
-            font-size: 12px;
-            font-weight: 500;
-            letter-spacing: .08em;
-            text-transform: uppercase;
-            color: var(--ink-2);
-            padding-top: 2px
-        }
-
-        html[data-lang="zh"] dt {
-            letter-spacing: .15em
-        }
-
-        dd {
-            margin: 0;
-            font-size: 14px
-        }
-
-        @media (max-width:420px) {
-            dl>div {
-                grid-template-columns: minmax(0, 1fr);
-                gap: 2px
-            }
-        }
-
-        .meta {
-            margin: 18px 0 0;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px 18px;
-            font-size: 13px;
-            color: var(--ink-2);
-            font-variant-numeric: tabular-nums
-        }
-
-        .meta a {
-            color: var(--jade);
-            text-underline-offset: 3px
-        }
-
-        /* ---------- pager ---------- */
-        .pager {
-            position: sticky;
-            bottom: 0;
-            z-index: 5;
-            display: grid;
-            grid-template-columns: 1fr auto 1fr;
-            align-items: center;
-            gap: 8px;
-            padding: 8px var(--gut);
-            padding-bottom: max(8px, env(safe-area-inset-bottom, 0px));
-            background: var(--panel);
-            border-top: 1px solid var(--line)
-        }
-
-        .pager button {
-            font: 500 14px var(--body);
-            background: transparent;
-            color: var(--ink);
-            border: 0;
-            padding: 8px 4px;
-            cursor: pointer;
-            display: flex;
-            gap: 6px;
-            align-items: center
-        }
-
-        .pager button:first-child {
-            justify-self: start
-        }
-
-        .pager button:last-child {
-            justify-self: end
-        }
-
-        .pager button:disabled {
-            opacity: .3;
-            cursor: default
-        }
-
-        .pager button:not(:disabled):hover {
-            color: var(--jade)
-        }
-
-        #count {
-            font-size: 13px;
-            color: var(--ink-2);
-            font-variant-numeric: tabular-nums
-        }
-
-        /* ---------- map ---------- */
-        .leaflet-container {
-            font-family: var(--body);
-            background: var(--wash)
-        }
-
-        .leaflet-tile-pane {
-            filter: saturate(.8)
-        }
-
-        .leaflet-bar a,
-        .leaflet-bar a:hover {
-            background: var(--panel);
-            color: var(--ink);
-            border-color: var(--line)
-        }
-
-        .leaflet-control-attribution {
-            background: color-mix(in srgb, var(--panel) 82%, transparent) !important;
-            color: var(--ink-2) !important
-        }
-
-        .leaflet-control-attribution a {
-            color: var(--jade) !important
-        }
-
-        .pin {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            display: grid;
-            place-items: center;
-            background: var(--panel);
-            color: var(--ink);
-            border: 2px solid var(--ink);
-            box-shadow: 0 1px 5px rgb(0 0 0/.35);
-            font: 700 15px/1 var(--display);
-            transition: transform .2s, background .2s, border-color .2s, color .2s;
-            cursor: pointer
-        }
-
-        .pin.on {
-            background: var(--jade);
-            border-color: var(--jade);
-            color: #fff;
-            transform: scale(1.3)
-        }
-
-        .leaflet-marker-icon:focus-visible .pin {
-            outline: 2px solid var(--jade);
-            outline-offset: 3px
-        }
-
-        .leaflet-tooltip.pin-tip {
-            background: var(--panel);
-            color: var(--ink);
-            border: 1px solid var(--line-2);
-            border-radius: 3px;
-            font: 500 13px var(--body);
-            padding: 4px 9px;
-            box-shadow: 0 2px 8px rgb(0 0 0/.25)
-        }
-
-        .leaflet-tooltip-top.pin-tip:before {
-            border-top-color: var(--line-2)
-        }
-
-        .art .badge{position:absolute;left:12px;top:12px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
-        background:var(--panel);color:var(--ink);border:2px solid var(--ink);font:700 20px/1 var(--display)}
-        .stop.is-active .art .badge{background:var(--jade);border-color:var(--jade);color:#fff}
-
-        @media (prefers-reduced-motion:reduce) {
-
-            .stop,
-            .pin,
-            .art .num {
-                transition: none
-            }
-        }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Suzhou, Your Way 苏州</title>
+
+<!--
+  HOW THIS FILE IS ORGANISED
+  1. PLACES: every place once (coordinates, bilingual text, photo).
+  2. PLANS:  each plan is a short list of places in order, with a "when" label and a plan-specific note.
+  To add a plan: copy a block in PLANS, give it a new id, and list place ids.
+  To add a place: copy a block in PLACES, give it a new key, then use that key in a plan.
+  Right-click the map to read exact coordinates for a place.
+  Coordinates marked "approx" were placed by hand and should be checked.
+
+  MAP TILES: OpenStreetMap tiles only load when the page is served from a website
+  (GitHub Pages, Netlify, Cloudflare Pages) or from a local server (python3 -m http.server).
+  Double-clicking the file shows an "access blocked" tile message but the stops still work.
+-->
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600;700&display=swap">
+
+<style>
+  /* Layout: map on the left, plan picker and stops on the right. On phones the map sits on top. */
+  :root{
+    --paper:#eef1ee;
+    --panel:#fafbf9;
+    --wash:#e3e9e4;
+    --ink:#1b2528;
+    --ink-2:#4b5a5e;
+    --line:#d3dad5;
+    --line-2:#bcc7c0;
+    --accent:#2b6b5a;      /* changes with the chosen plan */
+    --on-accent:#ffffff;
+    --seal:#b3392d;
+    --display:"Cormorant Garamond","Noto Serif SC","Songti SC","STSong",serif;
+    --body:"Noto Sans SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,-apple-system,"Segoe UI",sans-serif;
+    --gut:22px;
+    --bar-h:52px;
+    color-scheme:light;
+  }
+  html[data-plan="date"]{--accent:#a3405f}
+  html[data-plan="outdoors"]{--accent:#3d7a2a}
+  html[data-plan="crab"]{--accent:#b5511c}
+
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#0e1416; --panel:#141c1f; --wash:#1b2629;
+      --ink:#e5ebe8; --ink-2:#9db0af;
+      --line:#27353a; --line-2:#385056;
+      --accent:#72c4aa; --on-accent:#0e1416; --seal:#d9564a;
+      color-scheme:dark;
+    }
+    html[data-plan="date"]{--accent:#e58fa9}
+    html[data-plan="outdoors"]{--accent:#9ad07a}
+    html[data-plan="crab"]{--accent:#f0a070}
+  }
+
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.65;-webkit-font-smoothing:antialiased}
+
+  /* language switching: every text has an .en and a .zh twin */
+  html[data-lang="en"] .zh{display:none}
+  html[data-lang="zh"] .en{display:none}
+
+  .app{display:grid;grid-template-columns:minmax(0,1fr) minmax(380px,34rem);height:100vh;height:100dvh}
+  #map{height:100%;min-height:0;background:var(--wash)}
+  .panel{position:relative;overflow-y:auto;overscroll-behavior:contain;background:var(--panel);border-left:1px solid var(--line);min-width:0}
+  .nomap{margin:0;padding:24px;color:var(--ink-2)}
+
+  @media (max-width:820px){
+    .app{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(200px,38%) minmax(0,1fr)}
+    .panel{border-left:0;border-top:1px solid var(--line)}
+    :root{--gut:18px}
+  }
+
+  /* ---------- header and plan picker ---------- */
+  .bar{position:sticky;top:0;z-index:6;height:var(--bar-h);display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:0 var(--gut);background:var(--panel);border-bottom:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:10px;min-width:0}
+  .seal{flex:none;width:28px;height:28px;display:grid;place-items:center;background:var(--seal);color:#fff;
+    font:700 16px/1 "Noto Serif SC","Songti SC",serif;border-radius:2px}
+  .brand-name{font-weight:500;font-size:14px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .lang{display:flex;border:1px solid var(--line-2);border-radius:999px;padding:2px;flex:none}
+  .lang button{font:500 13px var(--body);border:0;background:transparent;color:var(--ink-2);padding:4px 12px;border-radius:999px;cursor:pointer}
+  .lang button[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+
+  .plans{position:sticky;top:var(--bar-h);z-index:5;display:flex;gap:8px;overflow-x:auto;padding:9px var(--gut);
+    background:var(--panel);border-bottom:1px solid var(--line);scrollbar-width:none}
+  .plans::-webkit-scrollbar{display:none}
+  .chip{flex:none;font:500 13px var(--body);padding:6px 14px;border:1px solid var(--line-2);border-radius:999px;
+    background:transparent;color:var(--ink);cursor:pointer;white-space:nowrap;transition:background .2s,color .2s,border-color .2s}
+  .chip:hover{border-color:var(--accent)}
+  .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+
+  .lang button:focus-visible,.chip:focus-visible,.pager button:focus-visible,.go:focus-visible,.meta a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* ---------- plan intro ---------- */
+  .intro{padding:30px var(--gut) 26px}
+  .eyebrow{margin:0 0 12px;font-size:12px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+  html[data-lang="zh"] .eyebrow{letter-spacing:.2em}
+  h1{margin:0;font:600 clamp(32px,4.4vw,44px)/1.08 var(--display);text-wrap:balance}
+  .alt{margin:6px 0 0;font:600 17px/1.3 var(--display);color:var(--ink-2)}
+  .intro .alt{font-size:20px;margin-top:8px}
+  .lede{margin:18px 0 0;max-width:34em}
+  html[data-lang="zh"] .lede,html[data-lang="zh"] .blurb,html[data-lang="zh"] dd,html[data-lang="zh"] .why p{line-height:1.9;letter-spacing:.015em}
+  .go{margin-top:20px;font:500 14px var(--body);color:var(--ink);background:transparent;border:1px solid var(--line-2);padding:8px 16px;border-radius:999px;cursor:pointer}
+  .go:hover{border-color:var(--accent);color:var(--accent)}
+
+  dl{margin:18px 0 0;display:grid;gap:12px}
+  dl>div{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:12px;padding-top:12px;border-top:1px dotted var(--line-2)}
+  dt{font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-2);padding-top:2px}
+  html[data-lang="zh"] dt{letter-spacing:.15em}
+  dd{margin:0;font-size:14px}
+  @media (max-width:420px){dl>div{grid-template-columns:minmax(0,1fr);gap:2px}}
+
+  /* ---------- stops ---------- */
+  .stops{padding-bottom:40vh}
+  .stop{padding:28px var(--gut) 32px;border-top:1px solid var(--line);scroll-margin-top:calc(var(--bar-h) + 52px);opacity:.5;transition:opacity .35s}
+  .stop:hover{opacity:.85}
+  .stop.is-active{opacity:1}
+  .art{margin:0 0 18px;border-radius:3px;overflow:hidden;background:var(--wash);aspect-ratio:320/150}
+  .art svg,.art img{display:block;width:100%;height:100%;object-fit:cover}
+  .art figure{margin:0;height:100%;position:relative}
+  .art figcaption{position:absolute;right:0;bottom:0;padding:2px 8px;font-size:11px;background:color-mix(in srgb,var(--panel) 80%,transparent);color:var(--ink-2)}
+  .art figcaption a{color:inherit}
+  .art .bg{fill:var(--wash)}
+  .art .ln{fill:none;stroke:var(--line-2);stroke-width:1}
+  .art .gate{fill:var(--ink)}
+  .art .hole{fill:var(--panel)}
+  .art .num{font-family:"Cormorant Garamond",serif;font-size:48px;font-weight:600;fill:var(--ink);transition:fill .3s}
+  .stop.is-active .num{fill:var(--accent)}
+  .art .badge{position:absolute;left:12px;top:12px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+    background:var(--panel);color:var(--ink);border:2px solid var(--ink);font:700 20px/1 var(--display)}
+  .stop.is-active .art .badge{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+
+  .kind{margin:0 0 8px;font-size:12px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+  html[data-lang="zh"] .kind{letter-spacing:.2em}
+  h2{margin:0;font:600 30px/1.15 var(--display);text-wrap:balance}
+  .blurb{margin:16px 0 0;max-width:36em}
+
+  .why{margin:16px 0 0;padding:12px 14px;background:var(--wash);border-radius:3px}
+  .why b{display:block;font-size:12px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
+  html[data-lang="zh"] .why b{letter-spacing:.15em}
+  .why p{margin:0;font-size:14px}
+
+  .meta{margin:18px 0 0;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+  .meta a{color:var(--accent);text-underline-offset:3px}
+
+  /* ---------- pager ---------- */
+  .pager{position:sticky;bottom:0;z-index:5;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;
+    padding:8px var(--gut);padding-bottom:max(8px,env(safe-area-inset-bottom,0px));background:var(--panel);border-top:1px solid var(--line)}
+  .pager button{font:500 14px var(--body);background:transparent;color:var(--ink);border:0;padding:8px 4px;cursor:pointer;display:flex;gap:6px;align-items:center}
+  .pager button:first-child{justify-self:start}
+  .pager button:last-child{justify-self:end}
+  .pager button:disabled{opacity:.3;cursor:default}
+  .pager button:not(:disabled):hover{color:var(--accent)}
+  #count{font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+
+  /* ---------- map ---------- */
+  .leaflet-container{font-family:var(--body);background:var(--wash)}
+  .leaflet-tile-pane{filter:saturate(.8)}
+  .leaflet-bar a,.leaflet-bar a:hover{background:var(--panel);color:var(--ink);border-color:var(--line)}
+  .leaflet-control-attribution{background:color-mix(in srgb,var(--panel) 82%,transparent)!important;color:var(--ink-2)!important}
+  .leaflet-control-attribution a{color:var(--accent)!important}
+  .pin{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--panel);color:var(--ink);
+    border:2px solid var(--ink);box-shadow:0 1px 5px rgb(0 0 0/.35);font:700 15px/1 var(--display);
+    transition:transform .2s,background .2s,border-color .2s,color .2s;cursor:pointer}
+  .pin.on{background:var(--accent);border-color:var(--accent);color:var(--on-accent);transform:scale(1.3)}
+  .leaflet-marker-icon:focus-visible .pin{outline:2px solid var(--accent);outline-offset:3px}
+  .leaflet-tooltip.pin-tip{background:var(--panel);color:var(--ink);border:1px solid var(--line-2);border-radius:3px;
+    font:500 13px var(--body);padding:4px 9px;box-shadow:0 2px 8px rgb(0 0 0/.25)}
+  .leaflet-tooltip-top.pin-tip:before{border-top-color:var(--line-2)}
+
+  @media (prefers-reduced-motion:reduce){
+    .stop,.pin,.chip,.art .num{transition:none}
+  }
+</style>
 </head>
-
 <body>
 
-    <div class="app">
-        <div id="map" role="application" aria-label="Map of Suzhou / 苏州地图"></div>
+<div class="app">
+  <div id="map" role="application" aria-label="Map of Suzhou / 苏州地图"></div>
 
-        <main class="panel" id="panel">
-            <header class="bar">
-                <div class="brand">
-                    <span class="seal" aria-hidden="true">苏</span>
-                    <span class="brand-name"><span class="en">Suzhou Story Map</span><span
-                            class="zh">苏州故事地图</span></span>
-                </div>
-                <div class="lang" role="group" aria-label="Language / 语言">
-                    <button type="button" data-set="en" aria-pressed="true">EN</button>
-                    <button type="button" data-set="zh" aria-pressed="false">中文</button>
-                </div>
-            </header>
+  <main class="panel" id="panel">
+    <header class="bar">
+      <div class="brand">
+        <span class="seal" aria-hidden="true">苏</span>
+        <span class="brand-name"><span class="en">Suzhou, your way</span><span class="zh">苏州，随你选</span></span>
+      </div>
+      <div class="lang" role="group" aria-label="Language / 语言">
+        <button type="button" data-set="en" aria-pressed="true">EN</button>
+        <button type="button" data-set="zh" aria-pressed="false">中文</button>
+      </div>
+    </header>
 
-            <section class="intro" id="overview" data-i="-1">
-                <p class="eyebrow"><span class="en">A walking guide · 11 stops</span><span class="zh">漫步指南 · 共 11
-                        站</span></p>
-                <h1><span class="en">Suzhou, garden by garden</span><span class="zh">苏州，一园一景</span></h1>
-                <p class="alt"><span class="en">苏州，一园一景</span><span class="zh">Suzhou, garden by garden</span></p>
-                <p class="lede">
-                    <span class="en">Suzhou grew up on canals and white-walled courtyards. This guide follows eleven
-                        places in a loose route: the old lanes and gardens on the east side, the south gate, the gardens
-                        and temples in the west, and a modern finish by the lake. Scroll the stories, or select a number
-                        on the map.</span>
-                    <span
-                        class="zh">苏州因运河和粉墙黛瓦的院落而兴。本指南沿一条松散的路线串起十一处地点：东侧的老街与园林、南面的城门、西边的园林与古寺，最后在湖边看看现代苏州。向下滚动阅读，或点击地图上的数字。</span>
-                </p>
-                <button type="button" class="go" id="showAll"><span class="en">Show all stops</span><span
-                        class="zh">查看全部地点</span></button>
-            </section>
+    <nav class="plans" id="plans" aria-label="Pick a plan / 选择路线"></nav>
 
-            <div class="stops" id="stops"></div>
+    <section class="intro" id="overview"></section>
 
-            <nav class="pager" aria-label="Stops / 站点">
-                <button type="button" id="prev"><span aria-hidden="true">‹</span><span class="en">Previous</span><span
-                        class="zh">上一站</span></button>
-                <span id="count" aria-live="polite"></span>
-                <button type="button" id="next"><span class="en">Next</span><span class="zh">下一站</span><span
-                        aria-hidden="true">›</span></button>
-            </nav>
-        </main>
-    </div>
+    <div class="stops" id="stops"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
-    <script>
-        if (typeof L === 'undefined') {
-            document.getElementById('map').innerHTML =
-                '<p style="padding:24px;font:15px system-ui">The map library could not load. Check your internet connection and reload. 地图组件加载失败，请检查网络后刷新。</p>';
-            throw new Error('Leaflet failed to load');
-        }
-    </script>
-    <script>
-        /* ------------------------------------------------------------------
-           STOPS. Order here is the order of the route.
-           Coordinates are approximate: right-click the map to read exact ones.
-        ------------------------------------------------------------------- */
-        const STOPS = [
-            {
-                lat: 31.3150, lng: 120.6340, zoom: 16,
-                kind: { en: "Old street", zh: "古街" },
-                name: { en: "Pingjiang Road", zh: "平江路" },
-                img: "images/pingjianglu.jpg",
-                credit: "https://k.sina.cn/article_1863932734_p6f195b3e00100e9ul.html",
-                blurb: {
-                    en: "A canal runs the length of this old lane, with stone bridges, whitewashed houses and tea rooms along the water. The layout is close to what a stone map carved in 1229 shows, which makes it one of the best places to see Suzhou as a Song-dynasty water town.",
-                    zh: "一条古运河贯穿整条老街，两岸是石桥、粉墙黛瓦和临水茶馆。街巷格局与 1229 年刻成的《平江图》大体一致，是感受宋代水城苏州的好去处。"
-                },
-                look: { en: "The stone bridges over the canal, and the side lanes where locals still live.", zh: "运河上的石拱桥，以及仍有居民生活的小巷。" },
-                tip: { en: "The street is about 1.6 km long. Walk it early in the morning, before the shops open and the crowds arrive.", zh: "全长约 1.6 公里。建议清晨来，店铺还没开门，人也少。" }
-            },
-            {
-                lat: 31.3238, lng: 120.6248, zoom: 17,
-                kind: { en: "Garden", zh: "园林" },
-                name: { en: "Lion Grove Garden", zh: "狮子林" },
-                img: "images/shizilin.webp",
-                credit: "https://baike.baidu.com/item/%E7%8B%AE%E5%AD%90%E6%9E%97/1025067",
-                blurb: {
-                    en: "Founded in 1342 by a Buddhist community, this garden is famous for its rockery: a tangle of Taihu limestone peaks, caves and passages that visitors can walk through. The rocks are said to resemble lions, which gave the garden its name.",
-                    zh: "此园始建于元至正二年（1342 年），由僧人所建，以假山闻名：太湖石堆叠成峰峦、洞壑和曲折的通道，可以穿行其间。传说石形似狮，园名由此而来。"
-                },
-                look: { en: "The cave passages in the central rockery. Try to find the stones that look like lions.", zh: "中央假山里的洞道；试着找出形似狮子的石头。" },
-                tip: { en: "The rockery is narrow and gets crowded. Go in the first hour after opening.", zh: "假山通道狭窄，容易拥挤，建议开园后第一个小时进入。" }
-            },
-            {
-                lat: 31.3235, lng: 120.6295, zoom: 17,
-                kind: { en: "Garden", zh: "园林" },
-                name: { en: "Humble Administrator’s Garden", zh: "拙政园" },
-                img: "images/zhuozhengyuan.jpg",
-                credit: "https://ylj.suzhou.gov.cn/szsylj/ylml/201904/f64435b7b293433cb70bc9734e76eff2.shtml",
-                blurb: {
-                    en: "The largest of Suzhou’s classical gardens, laid out in the early 1500s by a retired imperial official. Water covers much of the grounds, and pavilions, bridges and corridors are arranged so that each turn gives a new view. It belongs to the group of Suzhou gardens on the UNESCO World Heritage list.",
-                    zh: "苏州古典园林中面积最大的一座，由一位退隐的明代官员于 16 世纪初营建。园中水面开阔，亭台、廊桥错落，每一转弯都有新的景致。它属于联合国教科文组织世界遗产名录中的苏州古典园林。"
-                },
-                look: { en: "The zigzag bridges, and the view across the water from the Hall of Distant Fragrance.", zh: "曲折的小桥，以及从远香堂望出去的水景。" },
-                tip: { en: "Allow at least two hours. Spring brings wisteria and summer brings lotus.", zh: "建议至少留出两小时。春天看紫藤，夏天看荷花。" }
-            },
-            {
-                lat: 31.3232, lng: 120.6330, zoom: 17,
-                kind: { en: "Museum", zh: "博物馆" },
-                name: { en: "Suzhou Museum", zh: "苏州博物馆" },
-                img: "images/suzhoubowuguan.jpg",
-                credit: "https://k.sina.cn/article_5675440730_152485a5a02001xn28.html",
-                blurb: {
-                    en: "Designed by architect I. M. Pei, whose family came from Suzhou, and opened in 2006 beside the Humble Administrator’s Garden. Pei used grey slate and white walls to echo the old town’s roofs and plaster, and reworked the garden courtyard in a modern way. The collections focus on local art, craft and archaeology.",
-                    zh: "由祖籍苏州的建筑师贝聿铭设计，2006 年落成，紧邻拙政园。他用灰色石板和白墙呼应老城的瓦顶与粉墙，并以现代手法重新诠释庭院。馆藏以本地艺术、工艺和考古文物为主。"
-                },
-                look: { en: "The courtyard with its wall of layered stone “mountains”, and the geometric roof lines.", zh: "庭院里以石片叠成的“山水”壁，以及几何形的屋顶线条。" },
-                tip: { en: "Check the museum’s official page for current ticket and opening rules before you go.", zh: "出发前请在博物馆官方渠道确认最新的票务和开放规定。" }
-            },
-            {
-                lat: 31.2998, lng: 120.6335, zoom: 17,
-                kind: { en: "Garden", zh: "园林" },
-                name: { en: "Master of the Nets Garden", zh: "网师园" },
-                img: "images/wangshiyuan.jpg",
-                credit: "https://www.deskcity.org/download/219347-0-0x0.html",
-                blurb: {
-                    en: "A small garden that packs pavilions, a pond and rockeries into less than a hectare. It has Southern Song origins and was rebuilt in the 18th century. A courtyard here was the model for the Astor Court at the Metropolitan Museum of Art in New York.",
-                    zh: "一座小巧的园林，在不足一公顷的空间里布置了亭阁、水池和假山。园子始于南宋，18 世纪重建。纽约大都会艺术博物馆的“明轩”即以其中一处庭院为蓝本。"
-                },
-                look: { en: "The pond at the centre, with every building facing it from a different angle.", zh: "居中的水池，所有建筑都从不同角度朝向它。" },
-                tip: { en: "In some seasons the garden stages evening performances. Check the schedule before you book.", zh: "部分时节园内有夜间演出，出发前请查看场次。" }
-            },
-            {
-                lat: 31.2878, lng: 120.6100, zoom: 16,
-                kind: { en: "City gate", zh: "城门" },
-                name: { en: "Panmen Gate", zh: "盘门" },
-                img: "images/panmen.jpg",
-                credit: "https://www.panmen.com.cn/About/1.html",
-                blurb: {
-                    en: "Panmen is one of the few surviving city gates in China that combines a water gate and a land gate. The site goes back to the Wu kingdom, more than 2,500 years ago, though the present structure is much later. Nearby are the Song-dynasty Ruiguang Pagoda and the arched Wumen Bridge.",
-                    zh: "盘门是中国现存少数水陆城门并置的古城门之一。此处可追溯到两千五百多年前的吴国，现存建筑则晚得多。附近有宋代的瑞光塔和拱形的吴门桥。"
-                },
-                look: { en: "From Wumen Bridge the gate, the moat and the pagoda all fit in one view.", zh: "站在吴门桥上，城门、护城河和古塔可同时入画。" },
-                tip: { en: "A quieter stop than the big gardens, and good for late afternoon light.", zh: "比大型园林安静，适合傍晚光线好的时候来。" }
-            },
-            {
-                lat: 31.3170, lng: 120.5905, zoom: 17,
-                kind: { en: "Garden", zh: "园林" },
-                name: { en: "Lingering Garden", zh: "留园" },
-                img: "images/liuyuan.webp",
-                credit: "https://baike.baidu.com/item/%E7%95%99%E5%9B%AD/453654",
-                blurb: {
-                    en: "Famous for its long covered corridors, richly decorated halls and a Taihu rock more than six metres tall. The garden took its present form in the 19th century on older Ming foundations. It is the one to see if you like architecture and stone.",
-                    zh: "以悠长的复廊、装饰精美的厅堂，以及一块高六米多的太湖石而闻名。园子在明代旧址上于 19 世纪形成今日面貌。喜欢建筑与奇石的人不应错过。"
-                },
-                look: { en: "Guanyun Peak, the tall rock, and the lattice windows along the corridors, each framing a different view.", zh: "冠云峰，以及长廊上的漏窗，每一扇都框出不同的景致。" },
-                tip: { en: "It is a large site. Follow the corridors in order rather than cutting across.", zh: "园子较大，沿廊道依次游览，不要抄近路。" }
-            },
-            {
-                lat: 31.3150, lng: 120.5650, zoom: 16,
-                kind: { en: "Temple", zh: "寺庙" },
-                name: { en: "Hanshan Temple", zh: "寒山寺" },
-                img: "images/hanshansi.jpeg",
-                credit: "https://xinwen.bjd.com.cn/content/s667121a8e4b0f6c5abd61576.html",
-                blurb: {
-                    en: "A Buddhist temple by the Grand Canal, first built in the 6th century. A Tang-dynasty poem about a night moored near Maple Bridge made it known across East Asia. Its bell is rung 108 times on New Year’s Eve, a tradition that draws many visitors, including many from Japan.",
-                    zh: "一座临近大运河的佛寺，始建于六世纪。一首描写夜泊枫桥的唐诗让它在东亚闻名。每年除夕夜会撞钟一百零八下，吸引了许多游客，其中不乏来自日本的客人。"
-                },
-                look: { en: "Maple Bridge, a short walk away, and the old canal landing beside it.", zh: "几步之遥的枫桥，以及旁边的古运河码头。" },
-                tip: { en: "The New Year’s Eve ceremony is very crowded. On other days the temple is calm.", zh: "除夕撞钟活动人极多，平日则很安静。" }
-            },
-            {
-                lat: 31.3260, lng: 120.5945, zoom: 16,
-                kind: { en: "Old street", zh: "古街" },
-                name: { en: "Shantang Street", zh: "山塘街" },
-                img: "images/shantangjie.jpg",
-                credit: "https://m.ctrip.com/webapp/you/gspoi/photos/81719.html?seo=0&ishidenavbar=yes&videoId=1924165&from=https%3A%2F%2Fm.ctrip.com%2Fwebapp%2Fyou%2Fsight%2Fsuzhou11%2F25486.html%3Fext-shelfPage%3Dctrip_shelf_seo",
-                blurb: {
-                    en: "A canal-side street that runs from the old city’s Changmen gate to Tiger Hill, said to have been dug and built by the Tang poet and governor Bai Juyi around 825. Shops, snack stalls, old guild halls and stone bridges line the water, and traditional boats run along the canal.",
-                    zh: "一条临水的老街，从老城阊门通向虎丘，相传由唐代诗人、苏州刺史白居易在 825 年前后主持开凿修建。沿河是商铺、小吃摊、旧会馆和石桥，河上有传统游船往来。"
-                },
-                look: { en: "The street in the evening, when the lanterns come on and the water reflects them.", zh: "傍晚的街景：灯笼亮起，倒映在水面。" },
-                tip: { en: "The street is long. Walk from the Changmen end towards Tiger Hill, or take a boat one way.", zh: "街道很长，可从阊门一端步行到虎丘，或单程乘船。" }
-            },
-            {
-                lat: 31.3370, lng: 120.5780, zoom: 16,
-                kind: { en: "Hill and pagoda", zh: "山丘与古塔" },
-                name: { en: "Tiger Hill", zh: "虎丘" },
-                img: "images/huqiu.jpg",
-                credit: "https://m.ctrip.com/webapp/you/sight/suzhou11/144412.html?ext-shelfPage=ctrip_shelf_seo",
-                blurb: {
-                    en: "A small hill said to hold the tomb of King Helü of Wu, who ruled in the 6th century BCE. The seven-storey Yunyan Pagoda on top, completed in 961, leans noticeably and has been called the Leaning Tower of China. Below it the Sword Pond sits in a gorge of cut rock.",
-                    zh: "一座小山，相传吴王阖闾葬于此，他生活在公元前六世纪。山顶的云岩寺塔建成于 961 年，共七层，明显倾斜，被称为“中国的比萨斜塔”。塔下是嵌在岩壁间的剑池。"
-                },
-                look: { en: "The tilt of the pagoda, and the Sword Pond below it.", zh: "古塔的倾斜，以及脚下的剑池。" },
-                tip: { en: "Pair it with Shantang Street for one half-day. The walk between them is flat.", zh: "可与山塘街合并成半天行程，两地之间的步行路线地势平缓。" }
-            },
-            {
-                lat: 31.3125, lng: 120.6790, zoom: 15,
-                kind: { en: "Modern Suzhou", zh: "现代苏州" },
-                name: { en: "Gate to the East", zh: "东方之门" },
-                img: "images/dongfangzhimen.webp",
-                credit: "https://ecywang.com/image3512352809120973.html",
-                blurb: {
-                    en: "A 300-metre arch of two towers beside Jinji Lake in the Suzhou Industrial Park. It shows the other side of the city: a modern business district facing the water. Locals joke that its shape looks like a pair of trousers.",
-                    zh: "金鸡湖畔工业园区内的双塔拱门，高约三百米，展现苏州现代的一面：面向湖水的新商务区。当地人戏称它的形状像一条裤子。"
-                },
-                look: { en: "The arch seen from the lakeside promenade at sunset.", zh: "日落时分从湖滨步道望向拱门。" },
-                tip: { en: "Allow time to travel from the old town by metro or taxi, and spend an evening here.", zh: "从老城出发需乘地铁或打车，请预留路程时间，并留出一个傍晚。" }
-            }
-        ];
+    <nav class="pager" aria-label="Stops / 站点">
+      <button type="button" id="prev"><span aria-hidden="true">‹</span><span class="en">Previous</span><span class="zh">上一站</span></button>
+      <span id="count" aria-live="polite"></span>
+      <button type="button" id="next"><span class="en">Next</span><span class="zh">下一站</span><span aria-hidden="true">›</span></button>
+    </nav>
+  </main>
+</div>
 
-        /* ------------------------------------------------------------------ */
-        (function () {
-            const N = STOPS.length;
-            const root = document.documentElement;
-            const panel = document.getElementById('panel');
-            const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-            const t = o => `<span class="en">${o.en}</span><span class="zh">${o.zh}</span>`;
-            const LABELS = {
-                look: { en: "Look for", zh: "留意" },
-                tip: { en: "Visit tip", zh: "游览提示" },
-                stop: { en: "Stop", zh: "第" }
-            };
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+/* =====================================================================
+   1. PLACES
+   ===================================================================== */
+const PLACES = {
+  pingjiang: {
+    lat: 31.3150, lng: 120.6340, zoom: 16,
+    kind: { en: "Old street", zh: "古街" },
+    name: { en: "Pingjiang Road", zh: "平江路" },
+    img: "images/pingjianglu.jpg",
+    credit: "https://k.sina.cn/article_1863932734_p6f195b3e00100e9ul.html",
+    blurb: {
+      en: "A canal runs the length of this old lane, with stone bridges, whitewashed houses and tea rooms along the water. The layout is close to what a stone map carved in 1229 shows, which makes it one of the best places to see Suzhou as a Song-dynasty water town.",
+      zh: "一条古运河贯穿整条老街，两岸是石桥、粉墙黛瓦和临水茶馆。街巷格局与 1229 年刻成的《平江图》大体一致，是感受宋代水城苏州的好去处。"
+    },
+    look: { en: "The stone bridges over the canal, and the side lanes where locals still live.", zh: "运河上的石拱桥，以及仍有居民生活的小巷。" },
+    tip: { en: "The street is about 1.6 km long. Walk it early in the morning, before the shops open and the crowds arrive.", zh: "全长约 1.6 公里。建议清晨来，店铺还没开门，人也少。" }
+  },
+  shizilin: {
+    lat: 31.3238, lng: 120.6248, zoom: 17,
+    kind: { en: "Garden", zh: "园林" },
+    name: { en: "Lion Grove Garden", zh: "狮子林" },
+    img: "images/shizilin.webp",
+    credit: "https://baike.baidu.com/item/%E7%8B%AE%E5%AD%90%E6%9E%97/1025067",
+    blurb: {
+      en: "Founded in 1342 by a Buddhist community, this garden is famous for its rockery: a tangle of Taihu limestone peaks, caves and passages that visitors can walk through. The rocks are said to resemble lions, which gave the garden its name.",
+      zh: "此园始建于元至正二年（1342 年），由僧人所建，以假山闻名：太湖石堆叠成峰峦、洞壑和曲折的通道，可以穿行其间。传说石形似狮，园名由此而来。"
+    },
+    look: { en: "The cave passages in the central rockery. Try to find the stones that look like lions.", zh: "中央假山里的洞道；试着找出形似狮子的石头。" },
+    tip: { en: "The rockery is narrow and gets crowded. Go in the first hour after opening.", zh: "假山通道狭窄，容易拥挤，建议开园后第一个小时进入。" }
+  },
+  zhuozheng: {
+    lat: 31.3235, lng: 120.6295, zoom: 17,
+    kind: { en: "Garden", zh: "园林" },
+    name: { en: "Humble Administrator’s Garden", zh: "拙政园" },
+    img: "images/zhuozhengyuan.jpg",
+    credit: "https://ylj.suzhou.gov.cn/szsylj/ylml/201904/f64435b7b293433cb70bc9734e76eff2.shtml",
+    blurb: {
+      en: "The largest of Suzhou’s classical gardens, laid out in the early 1500s by a retired imperial official. Water covers much of the grounds, and pavilions, bridges and corridors are arranged so that each turn gives a new view. It belongs to the group of Suzhou gardens on the UNESCO World Heritage list.",
+      zh: "苏州古典园林中面积最大的一座，由一位退隐的明代官员于 16 世纪初营建。园中水面开阔，亭台、廊桥错落，每一转弯都有新的景致。它属于联合国教科文组织世界遗产名录中的苏州古典园林。"
+    },
+    look: { en: "The zigzag bridges, and the view across the water from the Hall of Distant Fragrance.", zh: "曲折的小桥，以及从远香堂望出去的水景。" },
+    tip: { en: "Allow at least two hours. Spring brings wisteria and summer brings lotus.", zh: "建议至少留出两小时。春天看紫藤，夏天看荷花。" }
+  },
+  museum: {
+    lat: 31.3232, lng: 120.6330, zoom: 17,
+    kind: { en: "Museum", zh: "博物馆" },
+    name: { en: "Suzhou Museum", zh: "苏州博物馆" },
+    img: "images/suzhoubowuguan.jpg",
+    credit: "https://k.sina.cn/article_5675440730_152485a5a02001xn28.html",
+    blurb: {
+      en: "Designed by architect I. M. Pei, whose family came from Suzhou, and opened in 2006 beside the Humble Administrator’s Garden. Pei used grey slate and white walls to echo the old town’s roofs and plaster, and reworked the garden courtyard in a modern way. The collections focus on local art, craft and archaeology.",
+      zh: "由祖籍苏州的建筑师贝聿铭设计，2006 年落成，紧邻拙政园。他用灰色石板和白墙呼应老城的瓦顶与粉墙，并以现代手法重新诠释庭院。馆藏以本地艺术、工艺和考古文物为主。"
+    },
+    look: { en: "The courtyard with its wall of layered stone “mountains”, and the geometric roof lines.", zh: "庭院里以石片叠成的“山水”壁，以及几何形的屋顶线条。" },
+    tip: { en: "Check the museum’s official page for current ticket and opening rules before you go.", zh: "出发前请在博物馆官方渠道确认最新的票务和开放规定。" }
+  },
+  wangshi: {
+    lat: 31.2998, lng: 120.6335, zoom: 17,
+    kind: { en: "Garden", zh: "园林" },
+    name: { en: "Master of the Nets Garden", zh: "网师园" },
+    img: "images/wangshiyuan.jpg",
+    credit: "https://www.deskcity.org/download/219347-0-0x0.html",
+    blurb: {
+      en: "A small garden that packs pavilions, a pond and rockeries into less than a hectare. It has Southern Song origins and was rebuilt in the 18th century. A courtyard here was the model for the Astor Court at the Metropolitan Museum of Art in New York.",
+      zh: "一座小巧的园林，在不足一公顷的空间里布置了亭阁、水池和假山。园子始于南宋，18 世纪重建。纽约大都会艺术博物馆的“明轩”即以其中一处庭院为蓝本。"
+    },
+    look: { en: "The pond at the centre, with every building facing it from a different angle.", zh: "居中的水池，所有建筑都从不同角度朝向它。" },
+    tip: { en: "In some seasons the garden stages evening performances. Check the schedule before you book.", zh: "部分时节园内有夜间演出，出发前请查看场次。" }
+  },
+  panmen: {
+    lat: 31.2878, lng: 120.6100, zoom: 16,
+    kind: { en: "City gate", zh: "城门" },
+    name: { en: "Panmen Gate", zh: "盘门" },
+    img: "images/panmen.jpg",
+    credit: "https://www.panmen.com.cn/About/1.html",
+    blurb: {
+      en: "Panmen is one of the few surviving city gates in China that combines a water gate and a land gate. The site goes back to the Wu kingdom, more than 2,500 years ago, though the present structure is much later. Nearby are the Song-dynasty Ruiguang Pagoda and the arched Wumen Bridge.",
+      zh: "盘门是中国现存少数水陆城门并置的古城门之一。此处可追溯到两千五百多年前的吴国，现存建筑则晚得多。附近有宋代的瑞光塔和拱形的吴门桥。"
+    },
+    look: { en: "From Wumen Bridge the gate, the moat and the pagoda all fit in one view.", zh: "站在吴门桥上，城门、护城河和古塔可同时入画。" },
+    tip: { en: "A quieter stop than the big gardens, and good for late afternoon light.", zh: "比大型园林安静，适合傍晚光线好的时候来。" }
+  },
+  liuyuan: {
+    lat: 31.3170, lng: 120.5905, zoom: 17,
+    kind: { en: "Garden", zh: "园林" },
+    name: { en: "Lingering Garden", zh: "留园" },
+    img: "images/liuyuan.webp",
+    credit: "https://baike.baidu.com/item/%E7%95%99%E5%9B%AD/453654",
+    blurb: {
+      en: "Famous for its long covered corridors, richly decorated halls and a Taihu rock more than six metres tall. The garden took its present form in the 19th century on older Ming foundations. It is the one to see if you like architecture and stone.",
+      zh: "以悠长的复廊、装饰精美的厅堂，以及一块高六米多的太湖石而闻名。园子在明代旧址上于 19 世纪形成今日面貌。喜欢建筑与奇石的人不应错过。"
+    },
+    look: { en: "Guanyun Peak, the tall rock, and the lattice windows along the corridors, each framing a different view.", zh: "冠云峰，以及长廊上的漏窗，每一扇都框出不同的景致。" },
+    tip: { en: "It is a large site. Follow the corridors in order rather than cutting across.", zh: "园子较大，沿廊道依次游览，不要抄近路。" }
+  },
+  hanshan: {
+    lat: 31.3150, lng: 120.5650, zoom: 16,
+    kind: { en: "Temple", zh: "寺庙" },
+    name: { en: "Hanshan Temple", zh: "寒山寺" },
+    img: "images/hanshansi.jpeg",
+    credit: "https://xinwen.bjd.com.cn/content/s667121a8e4b0f6c5abd61576.html",
+    blurb: {
+      en: "A Buddhist temple by the Grand Canal, first built in the 6th century. A Tang-dynasty poem about a night moored near Maple Bridge made it known across East Asia. Its bell is rung 108 times on New Year’s Eve, a tradition that draws many visitors, including many from Japan.",
+      zh: "一座临近大运河的佛寺，始建于六世纪。一首描写夜泊枫桥的唐诗让它在东亚闻名。每年除夕夜会撞钟一百零八下，吸引了许多游客，其中不乏来自日本的客人。"
+    },
+    look: { en: "Maple Bridge, a short walk away, and the old canal landing beside it.", zh: "几步之遥的枫桥，以及旁边的古运河码头。" },
+    tip: { en: "The New Year’s Eve ceremony is very crowded. On other days the temple is calm.", zh: "除夕撞钟活动人极多，平日则很安静。" }
+  },
+  shantang: {
+    lat: 31.3260, lng: 120.5945, zoom: 16,
+    kind: { en: "Old street", zh: "古街" },
+    name: { en: "Shantang Street", zh: "山塘街" },
+    img: "images/shantangjie.jpg",
+    credit: "https://m.ctrip.com/webapp/you/gspoi/photos/81719.html",
+    blurb: {
+      en: "A canal-side street that runs from the old city’s Changmen gate to Tiger Hill, said to have been dug and built by the Tang poet and governor Bai Juyi around 825. Shops, snack stalls, old guild halls and stone bridges line the water, and traditional boats run along the canal.",
+      zh: "一条临水的老街，从老城阊门通向虎丘，相传由唐代诗人、苏州刺史白居易在 825 年前后主持开凿修建。沿河是商铺、小吃摊、旧会馆和石桥，河上有传统游船往来。"
+    },
+    look: { en: "The street in the evening, when the lanterns come on and the water reflects them.", zh: "傍晚的街景：灯笼亮起，倒映在水面。" },
+    tip: { en: "The street is long. Walk from the Changmen end towards Tiger Hill, or take a boat one way.", zh: "街道很长，可从阊门一端步行到虎丘，或单程乘船。" }
+  },
+  huqiu: {
+    lat: 31.3370, lng: 120.5780, zoom: 16,
+    kind: { en: "Hill and pagoda", zh: "山丘与古塔" },
+    name: { en: "Tiger Hill", zh: "虎丘" },
+    img: "images/huqiu.jpg",
+    credit: "https://m.ctrip.com/webapp/you/sight/suzhou11/144412.html",
+    blurb: {
+      en: "A small hill said to hold the tomb of King Helü of Wu, who ruled in the 6th century BCE. The seven-storey Yunyan Pagoda on top, completed in 961, leans noticeably and has been called the Leaning Tower of China. Below it the Sword Pond sits in a gorge of cut rock.",
+      zh: "一座小山，相传吴王阖闾葬于此，他生活在公元前六世纪。山顶的云岩寺塔建成于 961 年，共七层，明显倾斜，被称为“中国的比萨斜塔”。塔下是嵌在岩壁间的剑池。"
+    },
+    look: { en: "The tilt of the pagoda, and the Sword Pond below it.", zh: "古塔的倾斜，以及脚下的剑池。" },
+    tip: { en: "Pair it with Shantang Street for one half-day. The walk between them is flat.", zh: "可与山塘街合并成半天行程，两地之间的步行路线地势平缓。" }
+  },
+  gate: {
+    lat: 31.3125, lng: 120.6790, zoom: 15,
+    kind: { en: "Modern Suzhou", zh: "现代苏州" },
+    name: { en: "Gate to the East", zh: "东方之门" },
+    img: "images/dongfangzhimen.webp",
+    credit: "https://ecywang.com/image3512352809120973.html",
+    blurb: {
+      en: "A 300-metre arch of two towers beside Jinji Lake in the Suzhou Industrial Park. It shows the other side of the city: a modern business district facing the water. Locals joke that its shape looks like a pair of trousers.",
+      zh: "金鸡湖畔工业园区内的双塔拱门，高约三百米，展现苏州现代的一面：面向湖水的新商务区。当地人戏称它的形状像一条裤子。"
+    },
+    look: { en: "The arch seen from the lakeside promenade at sunset.", zh: "日落时分从湖滨步道望向拱门。" },
+    tip: { en: "Allow time to travel from the old town by metro or taxi, and spend an evening here.", zh: "从老城出发需乘地铁或打车，请预留路程时间，并留出一个傍晚。" }
+  },
 
-            /* ---------- language ---------- */
-            function setLang(l) {
-                root.dataset.lang = l;
-                root.lang = l === 'zh' ? 'zh-CN' : 'en';
-                document.querySelectorAll('.lang button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.set === l)));
-                document.title = l === 'zh' ? '苏州故事地图' : 'Suzhou Story Map';
-                try { localStorage.setItem('suzhou-story-lang', l); } catch (e) { }
-            }
-            let saved = null;
-            try { saved = localStorage.getItem('suzhou-story-lang'); } catch (e) { }
-            setLang(saved || ((navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en'));
-            document.querySelectorAll('.lang button').forEach(b => b.addEventListener('click', () => setLang(b.dataset.set)));
+  /* ---- new places for the themed plans ---- */
+  jinji: {
+    lat: 31.3136, lng: 120.6917, zoom: 14,
+    kind: { en: "Lake and loop", zh: "湖泊与环湖步道" },
+    name: { en: "Jinji Lake", zh: "金鸡湖" },
+    blurb: {
+      en: "A lake of about seven square kilometres in the Suzhou Industrial Park, ringed by a flat 14 km path of pavement and boardwalk. Landmarks on the loop include the Suzhou Ferris wheel, the Culture and Arts Centre and the Gate to the East. After dark the shore lights up with music fountains and light shows.",
+      zh: "位于苏州工业园区的湖泊，面积约 7 平方公里，环湖步道全长约 14 公里，地势平坦，路面以铺装路和木栈道为主。沿线有摩天轮、苏州文化艺术中心和东方之门等地标。入夜后湖畔有音乐喷泉和灯光秀。"
+    },
+    look: { en: "The Gate to the East across the water, and the skyline reflected at dusk.", zh: "隔水相望的东方之门，以及黄昏时倒映在湖面的天际线。" },
+    tip: { en: "Start at the west entrance by the Music Fountain, or on the east side near the Culture and Arts Centre. You can ride or walk a section instead of the full loop. Check light-show times on the day.", zh: "可从西侧音乐喷泉入口出发，或从东侧文化艺术中心一带开始。不必走完全程，骑行或走一段也可以。灯光秀时间请当天确认。" }
+  },
+  tianping: {
+    lat: 31.2290, lng: 120.4930, zoom: 15,   // approx: check with a right-click on the map
+    kind: { en: "Mountain", zh: "山林" },
+    name: { en: "Tianping Mountain", zh: "天平山" },
+    blurb: {
+      en: "A wooded hill west of the city, known for its maple forests. A memorial area for the Song statesman Fan Zhongyan and old temple ruins are scattered among the trees, with streams and stone steps between them. It is Suzhou’s classic autumn-colour walk.",
+      zh: "城西一座林木茂盛的小山，以枫林闻名。范仲淹纪念区和古寺遗迹散落在林间，山间有溪流和石阶。是苏州最经典的赏秋去处。"
+    },
+    look: { en: "The maple forests, the temple ruins and the streams between them.", zh: "枫林、古寺遗迹，以及林间的溪流。" },
+    tip: { en: "Allow 2 to 3 hours. Some trails have stone steps and slopes, so wear shoes with grip. Colour is usually best from November to early December, and peak weeks are busy.", zh: "请预留 2 至 3 小时。部分山路有石阶和坡道，建议穿防滑鞋。红叶通常在 11 月至 12 月初最好，高峰周人较多。" }
+  },
+  yangcheng: {
+    lat: 31.4020, lng: 120.7750, zoom: 14,   // approx: check with a right-click on the map
+    kind: { en: "Lakeside crab resort", zh: "湖畔蟹乡" },
+    name: { en: "Yangcheng Lake Peninsula", zh: "阳澄湖半岛" },
+    blurb: {
+      en: "The lakeside tourist resort on Yangcheng Lake, in the Suzhou Industrial Park, where the hairy crab season is officially opened each autumn. It is the place for crab-tasting routes, crab markets and lakeside restaurants. Yangcheng Lake is the best-known source of Chinese mitten crab.",
+      zh: "苏州工业园区内的阳澄湖畔旅游度假区，每年秋季阳澄湖大闸蟹在这里举行开捕仪式。这里有品蟹线路、蟹市和临湖餐厅。阳澄湖是中华绒螯蟹（大闸蟹）最负盛名的产地。"
+    },
+    look: { en: "The lake itself, the crab markets, and the tag clipped to each crab.", zh: "开阔的湖面、蟹市，以及每只蟹身上的蟹扣。" },
+    tip: { en: "Counterfeit crabs are a known problem. Buy where each crab carries its own tag and a QR code you can scan to check the origin. Eat only crab that was alive when it was cooked.", zh: "假冒的“阳澄湖蟹”并不少见。请在每只蟹都挂有蟹扣、并可扫码核验产地的商家购买。只吃烹饪前还活着的蟹。" }
+  }
+};
 
-            /* ---------- lattice-window placeholder art (used when a stop has no photo) ---------- */
-            function lattice(i) {
-                const id = 'lat' + i;
-                const pats = [
-                    `<pattern id="${id}" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M12 0L24 12L12 24L0 12Z" class="ln"/></pattern>`,
-                    `<pattern id="${id}" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="14" cy="14" r="14" class="ln"/><circle cx="0" cy="0" r="14" class="ln"/><circle cx="28" cy="0" r="14" class="ln"/><circle cx="0" cy="28" r="14" class="ln"/><circle cx="28" cy="28" r="14" class="ln"/></pattern>`,
-                    `<pattern id="${id}" width="30" height="30" patternUnits="userSpaceOnUse"><rect x="3" y="3" width="24" height="24" class="ln"/><rect x="9" y="9" width="12" height="12" class="ln"/></pattern>`
-                ];
-                return `<svg viewBox="0 0 320 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+/* =====================================================================
+   2. PLANS
+   ===================================================================== */
+const PLANS = [
+  {
+    id: "classic",
+    label: { en: "Classics", zh: "经典" },
+    title: { en: "First visit: the classics", zh: "初到苏州：经典路线" },
+    lede: {
+      en: "Eleven places that explain Suzhou: gardens, canal streets, a city gate, a temple and a modern lakefront. Take them in order, or pick the ones you like.",
+      zh: "用十一个地方读懂苏州：园林、水巷、城门、古寺，还有现代的湖滨。可以按顺序走，也可以挑自己喜欢的。"
+    },
+    facts: [
+      { k: { en: "Best for", zh: "适合" }, v: { en: "First-time visitors", zh: "第一次来苏州的人" } },
+      { k: { en: "Best time", zh: "最佳时间" }, v: { en: "Spring and autumn", zh: "春秋两季" } },
+      { k: { en: "Time needed", zh: "所需时间" }, v: { en: "2 to 3 days for all eleven, or pick a few", zh: "全部走完需 2 至 3 天，也可只选几处" } }
+    ],
+    stops: [
+      { p: "pingjiang" }, { p: "shizilin" }, { p: "zhuozheng" }, { p: "museum" }, { p: "wangshi" }, { p: "panmen" },
+      { p: "liuyuan" }, { p: "hanshan" }, { p: "shantang" }, { p: "huqiu" }, { p: "gate" }
+    ]
+  },
+  {
+    id: "date",
+    label: { en: "Date", zh: "约会" },
+    title: { en: "A date in Suzhou", zh: "苏州约会路线" },
+    lede: {
+      en: "Slow, lit-up and a little theatrical: a quiet museum, a walk along the canal, a garden at night and the lake at dusk.",
+      zh: "节奏慢，夜景好，还带一点戏剧感：安静的博物馆、沿河散步、夜晚的园林，以及黄昏的湖边。"
+    },
+    facts: [
+      { k: { en: "Best for", zh: "适合" }, v: { en: "Couples", zh: "情侣" } },
+      { k: { en: "Best time", zh: "最佳时间" }, v: { en: "Late afternoon into the evening", zh: "傍晚到夜间" } },
+      { k: { en: "Plan", zh: "安排" }, v: { en: "Choose Master of the Nets or Shantang Street for the evening, or do both on two nights.", zh: "晚上可二选一：网师园或山塘街；也可分两晚都去。" } }
+    ],
+    stops: [
+      { p: "museum",
+        when: { en: "Afternoon", zh: "下午" },
+        note: { en: "A calm, design-led start: modern architecture, a courtyard garden and unhurried gallery rooms.", zh: "从安静、有设计感的地方开始：现代建筑、庭院山水和不赶时间的展厅。" } },
+      { p: "pingjiang",
+        when: { en: "Late afternoon", zh: "傍晚前" },
+        note: { en: "Walk the canal, then stop for tea. Riverside tea houses along here stage Pingtan and Kun Opera performances.", zh: "沿河慢慢走，再找一家茶馆坐下。这一带的临河茶馆有评弹和昆曲演出。" } },
+      { p: "wangshi",
+        when: { en: "Evening", zh: "晚上" },
+        note: { en: "A garden you can visit after dark, with lit pavilions and live Pingtan, Kun Opera or Jiangnan Sizhu music. Check which nights it runs.", zh: "天黑后也能游览的园林，亭台点灯，并有评弹、昆曲或江南丝竹演出。请先确认开放的夜晚。" } },
+      { p: "shantang",
+        when: { en: "Evening, alternative", zh: "晚上（另一选择）" },
+        note: { en: "Take a boat along the canal after dark, or watch a Kun Opera show in a traditional hall.", zh: "天黑后乘船游河，或在传统剧场看一场昆曲。" } },
+      { p: "jinji",
+        when: { en: "Sunset", zh: "日落" },
+        note: { en: "End by the water: music fountains and light shows, with the skyline lit up across the lake.", zh: "以湖边收尾：音乐喷泉和灯光秀，对岸的天际线亮起来。" } }
+    ]
+  },
+  {
+    id: "outdoors",
+    label: { en: "Outdoors", zh: "户外" },
+    title: { en: "Outdoors: hills, lakes and loops", zh: "户外：山、湖与环线" },
+    lede: {
+      en: "For people who would rather move than queue: a 14 km lake loop, an easy hill with a leaning pagoda, a canal-side walk and a mountain full of maples.",
+      zh: "给宁愿多走路也不想排队的人：14 公里的环湖步道、有斜塔的平缓小山、沿河漫步，以及满山的枫林。"
+    },
+    facts: [
+      { k: { en: "Best for", zh: "适合" }, v: { en: "Walkers, riders, runners and photographers", zh: "徒步、骑行、跑步和拍照的人" } },
+      { k: { en: "Best time", zh: "最佳时间" }, v: { en: "Autumn. Maples at Tianping are usually best from November to early December.", zh: "秋天。天平山红叶通常在 11 月至 12 月初最好。" } },
+      { k: { en: "Time needed", zh: "所需时间" }, v: { en: "Two days", zh: "两天" } }
+    ],
+    stops: [
+      { p: "jinji",
+        when: { en: "Day 1, morning", zh: "第一天上午" },
+        note: { en: "A flat 14 km loop on pavement and boardwalk. Ride or run it, or walk a section and stop at the lakeside landmarks.", zh: "平坦的 14 公里环湖步道，铺装路面加木栈道。可以骑行或跑步，也可以只走一段，沿途停在湖畔地标。" } },
+      { p: "huqiu",
+        when: { en: "Day 1, afternoon", zh: "第一天下午" },
+        note: { en: "A gentle hill with a leaning pagoda and a sword pond cut into the rock. Easy walking for any fitness level.", zh: "平缓的小山，有斜塔和嵌在岩壁间的剑池。步行轻松，体力一般也能走。" } },
+      { p: "shantang",
+        when: { en: "Day 1, evening", zh: "第一天傍晚" },
+        note: { en: "Walk the canal-side street from Tiger Hill towards the old city gate as the lanterns come on.", zh: "傍晚从虎丘沿河街走向老城阊门，灯笼渐次亮起。" } },
+      { p: "tianping",
+        when: { en: "Day 2", zh: "第二天" },
+        note: { en: "The big autumn walk: maple forests, streams, temple ruins and stone steps. Allow 2 to 3 hours.", zh: "最经典的赏秋徒步：枫林、溪流、古寺遗迹和石阶。请预留 2 至 3 小时。" } }
+    ]
+  },
+  {
+    id: "crab",
+    label: { en: "Crab lovers", zh: "蟹迷" },
+    title: { en: "For crab lovers", zh: "蟹迷专线" },
+    lede: {
+      en: "Come for Yangcheng Lake hairy crab in season, walk it off by Jinji Lake, and finish with tea on a canal street.",
+      zh: "为应季的阳澄湖大闸蟹而来，饭后在金鸡湖边走一走，最后在水巷的茶馆里收尾。"
+    },
+    facts: [
+      { k: { en: "Best for", zh: "适合" }, v: { en: "Food lovers", zh: "爱吃的人" } },
+      { k: { en: "Season", zh: "蟹季" }, v: { en: "Opens in late September and runs through autumn. In 2025 it opened on 26 September. Check this year’s date.", zh: "9 月下旬开捕，持续整个秋季。2025 年于 9 月 26 日开捕，请确认今年的时间。" } },
+      { k: { en: "Time needed", zh: "所需时间" }, v: { en: "One day", zh: "一天" } }
+    ],
+    stops: [
+      { p: "yangcheng",
+        when: { en: "Lunch", zh: "午餐" },
+        note: { en: "The crab stop. Look at the crab markets, check the tags and book a table by the lake. Ask the restaurant how it sources its crabs.", zh: "整条路线的重点。先逛蟹市、看蟹扣，再在湖边订一桌。可以问问餐厅蟹的来源。" } },
+      { p: "jinji",
+        when: { en: "Afternoon", zh: "下午" },
+        note: { en: "The Suzhou Industrial Park, where the crab resort sits, is next to Jinji Lake. Walk a section of the loop after lunch.", zh: "阳澄湖半岛所在的苏州工业园区紧邻金鸡湖。午饭后可以沿环湖步道走一段。" } },
+      { p: "pingjiang",
+        when: { en: "Late afternoon", zh: "傍晚前" },
+        note: { en: "Finish in the old town with tea beside the canal. Tea houses here stage Pingtan and Kun Opera.", zh: "回到老城，在河边喝杯茶收尾。这里的茶馆有评弹和昆曲演出。" } }
+    ]
+  }
+];
+
+/* =====================================================================
+   3. PAGE LOGIC
+   ===================================================================== */
+(function () {
+  const root = document.documentElement;
+  const panel = document.getElementById('panel');
+  const stopsEl = document.getElementById('stops');
+  const introEl = document.getElementById('overview');
+  const plansEl = document.getElementById('plans');
+  const prevBtn = document.getElementById('prev');
+  const nextBtn = document.getElementById('next');
+  const cEl = document.getElementById('count');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const hasMap = typeof L !== 'undefined';
+
+  const t = o => `<span class="en">${o.en}</span><span class="zh">${o.zh}</span>`;
+  const LABELS = {
+    look: { en: "Look for", zh: "留意" },
+    tip: { en: "Visit tip", zh: "游览提示" },
+    why: { en: "Why it is on this plan", zh: "入选理由" }
+  };
+
+  let plan = null, stops = [], cards = [], markers = [], cur, io = null, lockUntil = 0, bounds = null;
+
+  /* ---------- language ---------- */
+  function updateTitle() {
+    const zh = root.dataset.lang === 'zh';
+    document.title = (zh ? '苏州，随你选' : 'Suzhou, your way') + (plan ? ' · ' + (zh ? plan.title.zh : plan.title.en) : '');
+  }
+  function setLang(l) {
+    root.dataset.lang = l;
+    root.lang = l === 'zh' ? 'zh-CN' : 'en';
+    document.querySelectorAll('.lang button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.set === l)));
+    updateTitle();
+    try { localStorage.setItem('suzhou-plans-lang', l); } catch (e) {}
+  }
+  let saved = null;
+  try { saved = localStorage.getItem('suzhou-plans-lang'); } catch (e) {}
+  setLang(saved || ((navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en'));
+  document.querySelectorAll('.lang button').forEach(b => b.addEventListener('click', () => setLang(b.dataset.set)));
+
+  /* ---------- map ---------- */
+  let map = null;
+  if (hasMap) {
+    map = L.map('map', { zoomSnap: 0.5, worldCopyJump: false }).setView([31.31, 120.62], 11);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    // Right-click the map to read coordinates for a place.
+    map.on('contextmenu', e => {
+      L.popup().setLatLng(e.latlng).setContent(`lat: ${e.latlng.lat.toFixed(4)}, lng: ${e.latlng.lng.toFixed(4)}`).openOn(map);
+    });
+  } else {
+    document.getElementById('map').innerHTML =
+      '<p class="nomap">The map library could not load, so only the stop list is shown. Check your connection and reload. 地图组件未能加载，目前只显示站点列表，请检查网络后刷新。</p>';
+  }
+
+  function view(latlng, zoom, instant) {
+    if (!map) return;
+    if (reduce || instant) map.setView(latlng, zoom, { animate: false });
+    else map.flyTo(latlng, zoom, { duration: 0.9 });
+  }
+  function fit(instant) {
+    if (!map || !bounds) return;
+    if (reduce || instant) map.fitBounds(bounds, { padding: [50, 50], animate: false });
+    else map.flyToBounds(bounds, { padding: [50, 50], duration: 0.9 });
+  }
+
+  /* ---------- lattice art (shown when a place has no photo, or the photo is missing) ---------- */
+  function lattice(i) {
+    const id = 'lat' + i;
+    const pats = [
+      `<pattern id="${id}" width="24" height="24" patternUnits="userSpaceOnUse"><path d="M12 0L24 12L12 24L0 12Z" class="ln"/></pattern>`,
+      `<pattern id="${id}" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="14" cy="14" r="14" class="ln"/><circle cx="0" cy="0" r="14" class="ln"/><circle cx="28" cy="0" r="14" class="ln"/><circle cx="0" cy="28" r="14" class="ln"/><circle cx="28" cy="28" r="14" class="ln"/></pattern>`,
+      `<pattern id="${id}" width="30" height="30" patternUnits="userSpaceOnUse"><rect x="3" y="3" width="24" height="24" class="ln"/><rect x="9" y="9" width="12" height="12" class="ln"/></pattern>`
+    ];
+    return `<svg viewBox="0 0 320 150" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
       <defs>${pats[i % 3]}</defs>
       <rect width="320" height="150" class="bg"/>
       <rect width="320" height="150" fill="url(#${id})"/>
@@ -796,27 +592,37 @@
       <circle cx="160" cy="75" r="46" class="hole"/>
       <text x="160" y="92" text-anchor="middle" class="num">${i + 1}</text>
     </svg>`;
-            }
+  }
 
-            /* ---------- build story cards ---------- */
-            const stopsEl = document.getElementById('stops');
-            STOPS.forEach((s, i) => {
-                const media = s.img
-                    // ? `<figure><img src="${s.img}" alt="${s.name.en}" loading="lazy">${s.credit ? `<figcaption>${s.credit}</figcaption>` : ''}</figure>`
-                      ? `<figure><img src="${s.img}" alt="${s.name.en}" loading="lazy"><span class="badge">${i + 1}</span>${s.credit ? `<figcaption>${s.credit}</figcaption>` : ''}</figure>`    
-                : lattice(i);
-                // const osm = `https://www.openstreetmap.org/?mlat=${s.lat}&mlon=${s.lng}#map=17/${s.lat}/${s.lng}`;
-                const gmap = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.name.en + ' Suzhou')}`;
-                const amap = `https://uri.amap.com/search?keyword=${encodeURIComponent(s.name.zh)}&city=${encodeURIComponent('苏州')}`;
-                const a = document.createElement('article');
-                a.className = 'stop';
-                a.id = 'stop-' + (i + 1);
-                a.dataset.i = i;
-                a.innerHTML = `
+  // A credit that is a web address becomes a short link, so long URLs never fill the corner.
+  function creditHTML(c) {
+    if (!c) return '';
+    if (/^https?:\/\//i.test(c)) {
+      let host = c;
+      try { host = new URL(c).hostname.replace(/^www\./, ''); } catch (e) {}
+      return `Source: <a href="${c}" target="_blank" rel="noopener">${host}</a>`;
+    }
+    return c;
+  }
+
+  /* ---------- build the cards for the current plan ---------- */
+  function buildCard(s, i, N) {
+    const media = s.img
+      ? `<figure><img src="${s.img}" alt="${s.name.en}" loading="lazy"><span class="badge">${i + 1}</span>${s.credit ? `<figcaption>${creditHTML(s.credit)}</figcaption>` : ''}</figure>`
+      : lattice(i);
+    const gmap = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.name.en + ' Suzhou')}`;
+    const amap = `https://uri.amap.com/search?keyword=${encodeURIComponent(s.name.zh)}&city=${encodeURIComponent('苏州')}`;
+    const head = s.when ? `${t(s.when)} · ${t(s.kind)}` : t(s.kind);
+    const a = document.createElement('article');
+    a.className = 'stop';
+    a.id = plan.id + '-' + (i + 1);
+    a.dataset.i = i;
+    a.innerHTML = `
       <div class="art">${media}</div>
-      <p class="kind">${t(s.kind)}</p>
+      <p class="kind">${head}</p>
       <h2>${t(s.name)}</h2>
       <p class="alt">${t({ en: s.name.zh, zh: s.name.en })}</p>
+      ${s.note ? `<div class="why"><b>${t(LABELS.why)}</b><p>${t(s.note)}</p></div>` : ''}
       <p class="blurb">${t(s.blurb)}</p>
       <dl>
         <div><dt>${t(LABELS.look)}</dt><dd>${t(s.look)}</dd></div>
@@ -827,127 +633,123 @@
         <a href="${gmap}" target="_blank" rel="noopener"><span class="en">Google Maps</span><span class="zh">谷歌地图</span></a>
         <a href="${amap}" target="_blank" rel="noopener"><span class="en">Gaode (Amap)</span><span class="zh">高德地图</span></a>
       </p>`;
-                stopsEl.appendChild(a);
-            });
-            const introEl = document.getElementById('overview');
-            const cards = [...stopsEl.children];
+    const im = a.querySelector('img');
+    if (im) im.addEventListener('error', () => { a.querySelector('.art').innerHTML = lattice(i); });
+    return a;
+  }
 
-            /* ---------- map ---------- */
-            const map = L.map('map', { zoomSnap: 0.5, worldCopyJump: false });
-            // CARTO basemaps (built on OpenStreetMap data): free with attribution, and they work from a local file.
-            // const tileOpts = {
-            //     maxZoom: 19,
-            //     subdomains: 'abcd',
-            //     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-            // };
-            // const tileUrl = dark => `https://{s}.basemaps.cartocdn.com/rastertiles/${dark ? 'dark_all' : 'voyager'}/{z}/{x}/{y}{r}.png`;
-            // const darkQuery = matchMedia('(prefers-color-scheme: dark)');
-            // let tiles = L.tileLayer(tileUrl(darkQuery.matches), tileOpts).addTo(map);
-            // darkQuery.addEventListener('change', () => {
-            //     map.removeLayer(tiles);
-            //     tiles = L.tileLayer(tileUrl(darkQuery.matches), tileOpts).addTo(map);
-            // });
-              // Esri World Street Map: no API key, works when you double-click the file.
-            // L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
-            //     maxZoom: 19,
-            //     attribution: 'Tiles &copy; Esri'
-            // }).addTo(map);
-            L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
+  function buildIntro() {
+    const N = stops.length;
+    introEl.innerHTML = `
+      <p class="eyebrow"><span class="en">Plan · ${N} stops</span><span class="zh">路线 · 共 ${N} 站</span></p>
+      <h1>${t(plan.title)}</h1>
+      <p class="alt">${t({ en: plan.title.zh, zh: plan.title.en })}</p>
+      <p class="lede">${t(plan.lede)}</p>
+      <dl>${plan.facts.map(f => `<div><dt>${t(f.k)}</dt><dd>${t(f.v)}</dd></div>`).join('')}</dl>
+      <button type="button" class="go" id="showAll"><span class="en">Show all stops on the map</span><span class="zh">在地图上查看全部站点</span></button>`;
+  }
 
-            const bounds = L.latLngBounds(STOPS.map(s => [s.lat, s.lng]));
-            map.fitBounds(bounds, { padding: [50, 50], animate: false });
+  function buildMarkers() {
+    markers.forEach(m => map && map.removeLayer(m));
+    markers = [];
+    if (!map) return;
+    markers = stops.map((s, i) => {
+      const m = L.marker([s.lat, s.lng], {
+        icon: L.divIcon({ className: '', html: `<div class="pin">${i + 1}</div>`, iconSize: [30, 30], iconAnchor: [15, 15] }),
+        keyboard: true,
+        title: s.name.en + ' ' + s.name.zh
+      }).addTo(map);
+      m.bindTooltip(`<span class="en">${s.name.en}</span><span class="zh">${s.name.zh}</span>`, { direction: 'top', offset: [0, -18], className: 'pin-tip' });
+      m.on('click', () => goTo(i));
+      return m;
+    });
+    bounds = L.latLngBounds(stops.map(s => [s.lat, s.lng]));
+  }
 
-            const markers = STOPS.map((s, i) => {
-                const m = L.marker([s.lat, s.lng], {
-                    icon: L.divIcon({ className: '', html: `<div class="pin">${i + 1}</div>`, iconSize: [30, 30], iconAnchor: [15, 15] }),
-                    keyboard: true,
-                    title: s.name.en + ' ' + s.name.zh
-                }).addTo(map);
-                m.bindTooltip(`<span class="en">${s.name.en}</span><span class="zh">${s.name.zh}</span>`, {
-                    direction: 'top', offset: [0, -18], className: 'pin-tip'
-                });
-                m.on('click', () => goTo(i));
-                return m;
-            });
+  /* ---------- active stop ---------- */
+  function setActive(i) {
+    if (i === cur) return;
+    cur = i;
+    cards.forEach((c, k) => c.classList.toggle('is-active', k === i));
+    markers.forEach((m, k) => {
+      const el = m.getElement();
+      if (el && el.firstChild) el.firstChild.classList.toggle('on', k === i);
+      m.setZIndexOffset(k === i ? 1000 : 0);
+      if (k === i) m.openTooltip(); else m.closeTooltip();
+    });
+    if (i < 0) fit(); else view([stops[i].lat, stops[i].lng], stops[i].zoom || 16);
+    cEl.innerHTML = i < 0 ? t({ en: 'Overview', zh: '总览' }) : `${i + 1} / ${stops.length}`;
+    prevBtn.disabled = i < 0;
+    nextBtn.disabled = i >= stops.length - 1;
+    try { history.replaceState(null, '', '#' + plan.id + (i < 0 ? '' : '-' + (i + 1))); } catch (e) {}
+  }
 
-            // Right-click the map to read coordinates for a new stop.
-            map.on('contextmenu', e => {
-                const lat = e.latlng.lat.toFixed(4), lng = e.latlng.lng.toFixed(4);
-                L.popup().setLatLng(e.latlng).setContent(`lat: ${lat}, lng: ${lng}`).openOn(map);
-            });
+  function goTo(i, instant) {
+    i = Math.max(-1, Math.min(stops.length - 1, i));
+    lockUntil = performance.now() + 1100;
+    setActive(i);
+    const behavior = (reduce || instant) ? 'auto' : 'smooth';
+    if (i < 0) panel.scrollTo({ top: 0, behavior });
+    else cards[i].scrollIntoView({ behavior, block: 'start' });
+  }
 
-            function view(latlng, zoom) {
-                if (reduce) map.setView(latlng, zoom, { animate: false });
-                else map.flyTo(latlng, zoom, { duration: 0.9 });
-            }
+  /* ---------- switch plan ---------- */
+  function renderPlan(id, start, instant) {
+    plan = PLANS.find(p => p.id === id) || PLANS[0];
+    root.dataset.plan = plan.id;
+    document.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.plan === plan.id)));
 
-            /* ---------- active stop ---------- */
-            const prevBtn = document.getElementById('prev');
-            const nextBtn = document.getElementById('next');
-            const cEl = document.getElementById('count');
-            let cur = null;
-            let lockUntil = 0;
+    stops = plan.stops.map(s => Object.assign({}, PLACES[s.p], { when: s.when, note: s.note }));
+    buildIntro();
+    stopsEl.innerHTML = '';
+    cards = stops.map((s, i) => buildCard(s, i, stops.length));
+    cards.forEach(c => stopsEl.appendChild(c));
+    buildMarkers();
 
-            function setActive(i) {
-                if (i === cur) return;
-                cur = i;
-                cards.forEach((c, k) => c.classList.toggle('is-active', k === i));
-                markers.forEach((m, k) => {
-                    const el = m.getElement();
-                    if (el && el.firstChild) el.firstChild.classList.toggle('on', k === i);
-                    m.setZIndexOffset(k === i ? 1000 : 0);
-                    if (k === i) m.openTooltip(); else m.closeTooltip();
-                });
-                if (i < 0) {
-                    if (reduce) map.fitBounds(bounds, { padding: [50, 50], animate: false });
-                    else map.flyToBounds(bounds, { padding: [50, 50], duration: 0.9 });
-                } else {
-                    view([STOPS[i].lat, STOPS[i].lng], STOPS[i].zoom || 16);
-                }
-                cEl.innerHTML = i < 0
-                    ? t({ en: 'Overview', zh: '总览' })
-                    : `${i + 1} / ${N}`;
-                prevBtn.disabled = i < 0;
-                nextBtn.disabled = i >= N - 1;
-                try { history.replaceState(null, '', i < 0 ? location.pathname + location.search : '#stop-' + (i + 1)); } catch (e) { }
-            }
+    if (io) io.disconnect();
+    io = new IntersectionObserver(entries => {
+      if (performance.now() < lockUntil) return;
+      entries.forEach(e => { if (e.isIntersecting) setActive(+e.target.dataset.i); });
+    }, { root: panel, rootMargin: '-35% 0px -55% 0px', threshold: 0 });
+    introEl.dataset.i = -1;
+    io.observe(introEl);
+    cards.forEach(c => io.observe(c));
 
-            function goTo(i, instant) {
-                i = Math.max(-1, Math.min(N - 1, i));
-                lockUntil = performance.now() + 1100;
-                setActive(i);
-                const behavior = (reduce || instant) ? 'auto' : 'smooth';
-                if (i < 0) panel.scrollTo({ top: 0, behavior });
-                else cards[i].scrollIntoView({ behavior, block: 'start' });
-            }
+    cur = undefined;
+    panel.scrollTo({ top: 0, behavior: 'auto' });
+    updateTitle();
+    if (start >= 0) goTo(start, true);
+    else { if (instant && map && bounds) map.fitBounds(bounds, { padding: [50, 50], animate: false }); setActive(-1); }
+  }
 
-            // Scrolling the story column drives the map.
-            const io = new IntersectionObserver(entries => {
-                if (performance.now() < lockUntil) return;
-                entries.forEach(e => { if (e.isIntersecting) setActive(+e.target.dataset.i); });
-            }, { root: panel, rootMargin: '-30% 0px -60% 0px', threshold: 0 });
-            io.observe(introEl);
-            cards.forEach(c => io.observe(c));
+  /* ---------- plan chips ---------- */
+  PLANS.forEach(p => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'chip';
+    b.dataset.plan = p.id;
+    b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = t(p.label);
+    b.addEventListener('click', () => { if (plan && plan.id === p.id) return; renderPlan(p.id, -1); });
+    plansEl.appendChild(b);
+  });
 
-            prevBtn.addEventListener('click', () => goTo((cur === null ? -1 : cur) - 1));
-            nextBtn.addEventListener('click', () => goTo((cur === null ? -1 : cur) + 1));
-            document.getElementById('showAll').addEventListener('click', () => goTo(-1));
-            document.addEventListener('keydown', e => {
-                if (e.altKey || e.ctrlKey || e.metaKey) return;
-                if (!(panel.contains(e.target) || e.target === document.body)) return;
-                if (e.key === 'ArrowRight') goTo((cur === null ? -1 : cur) + 1);
-                if (e.key === 'ArrowLeft') goTo((cur === null ? -1 : cur) - 1);
-            });
+  panel.addEventListener('click', e => { if (e.target.closest('#showAll')) goTo(-1); });
+  prevBtn.addEventListener('click', () => goTo((cur === undefined ? -1 : cur) - 1));
+  nextBtn.addEventListener('click', () => goTo((cur === undefined ? -1 : cur) + 1));
+  document.addEventListener('keydown', e => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    if (!(panel.contains(e.target) || e.target === document.body)) return;
+    if (e.key === 'ArrowRight') goTo((cur === undefined ? -1 : cur) + 1);
+    if (e.key === 'ArrowLeft') goTo((cur === undefined ? -1 : cur) - 1);
+  });
 
-            // Deep link: index.html#stop-3
-            const m = /^#stop-(\d+)$/.exec(location.hash);
-            if (m && +m[1] >= 1 && +m[1] <= N) goTo(+m[1] - 1, true);
-            else setActive(-1);
-        })();
-    </script>
+  // Links like index.html#crab or index.html#crab-2
+  const h = /^#([a-z]+)(?:-(\d+))?$/.exec(location.hash);
+  const startPlan = h && PLANS.some(p => p.id === h[1]) ? h[1] : PLANS[0].id;
+  const startStop = h && h[2] ? +h[2] - 1 : -1;
+  renderPlan(startPlan, startStop >= 0 && startStop < PLANS.find(p => p.id === startPlan).stops.length ? startStop : -1, true);
+})();
+</script>
 </body>
-
 </html>
