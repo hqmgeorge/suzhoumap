@@ -192,6 +192,10 @@ h1 { font-size: clamp(30px, 4.6vw, 50px); line-height: 1.05; font-weight: 800; l
 .chip { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px 6px 4px 12px; font-size: 13.5px; }
 .chip button { width: 22px; height: 22px; border-radius: 50%; border: 0; background: var(--bg); color: var(--ink); cursor: pointer; line-height: 1; }
 .clear { margin-top: 12px; font-size: 13px; font-weight: 500; background: none; border: 0; color: var(--muted); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; padding: 0; }
+.credits { margin-top: 28px; font-size: 13px; color: var(--muted); }
+.credits h3 { font-size: 15px; color: var(--ink); font-weight: 800; }
+.credits ul { margin: 8px 0 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.credits a { color: var(--ink); text-underline-offset: 3px; }
 .foot { margin-top: 26px; font-size: 13px; color: var(--muted); max-width: 62ch; }
 .foot p { margin: 0 0 8px; }
 
@@ -256,6 +260,7 @@ path.route { stroke: var(--accent); }
       <div class="plan-head" id="planhead"></div>
       <ol class="stops" id="stops"></ol>
       <div class="picks" id="picks"></div>
+      <div class="credits" id="credits"></div>
       <div class="foot" id="foot"></div>
     </section>
   </main>
@@ -270,8 +275,40 @@ path.route { stroke: var(--accent); }
        link: URL of a playlist (shows an "Open playlist" link)
        title: optional display name, { en: '', zh: '' }                         */
   var MUSIC = {
-    /* 'city-walk':  { title: { en: '', zh: '' }, file: '', link: '' }, */
+    /* Override one plan, for example:
+       'night-date': { title: { en: '', zh: '' }, file: 'audio/name.mp3', link: '', credit: '' }, */
   };
+
+  /* One track per area. Download each file from its Pixabay page (Free download button),
+     then save it in an audio folder next to this HTML file using the file name below. */
+  var MUSIC_AREA = {
+    city: {
+      title: { en: 'Chill Lofi', zh: 'Chill Lofi' },
+      file: 'audio/chill-lofi.mp3',
+      link: 'https://pixabay.com/music/lofi-chill-lofi-585360/',
+      credit: '“Chill Lofi” by ZephiraMusic, via Pixabay (Pixabay Content License)'
+    },
+    gardens: {
+      title: { en: 'Mountain Spring', zh: 'Mountain Spring（山泉）' },
+      file: 'audio/mountain-spring.mp3',
+      link: 'https://pixabay.com/music/world-mountain-spring-full-version-chinese-music-410476/',
+      credit: '“Mountain Spring (full version) Chinese Music” by kaazoom, via Pixabay (Pixabay Content License)'
+    },
+    outdoors: {
+      title: { en: 'Rock Energetic', zh: 'Rock Energetic' },
+      file: 'audio/rock-energetic.mp3',
+      link: 'https://pixabay.com/music/rock-rock-energetic-593064/',
+      credit: '“Rock Energetic” by The_Mountain, via Pixabay (Pixabay Content License)'
+    },
+    modern: {
+      title: { en: 'Tech Corporate', zh: 'Tech Corporate' },
+      file: 'audio/tech-corporate.mp3',
+      link: 'https://pixabay.com/music/corporate-tech-corporate-593075/',
+      credit: '“Tech Corporate” by The_Mountain, via Pixabay (Pixabay Content License)'
+    },
+    night: { title: null, file: '', link: '', credit: '' }   /* night track still to be chosen */
+  };
+  var DEFAULT_VOLUME = 0.35;
 
   /* ---------- Stop images ----------
      Add a photo per stop by publishing the image file next to this page and listing it here.
@@ -298,11 +335,12 @@ path.route { stroke: var(--accent); }
     on: { en: 'On', zh: '开' },
     off: { en: 'Off', zh: '关' },
     noTrack: { en: 'No track added yet', zh: '还没有添加音乐' },
-    linkTbd: { en: 'Playlist link to be added', zh: '歌单链接待添加' },
-    openList: { en: 'Open playlist', zh: '打开歌单' },
+    linkTbd: { en: 'Track link to be added', zh: '音乐链接待添加' },
+    openList: { en: 'Track page', zh: '音乐页面' },
     tbd: { en: 'Venue to be added', zh: '场地待补充' },
     imgTbd: { en: 'Image to be added', zh: '图片待添加' },
     details: { en: 'Details', zh: '信息' },
+    creditsH: { en: 'Music credits', zh: '音乐致谢' },
     openA: { en: 'Amap 高德', zh: '高德地图' },
     openG: { en: 'Google Maps', zh: '谷歌地图' },
     cue: { en: 'Scroll for the stops', zh: '向下滚动查看每一站' },
@@ -628,6 +666,7 @@ path.route { stroke: var(--accent); }
     for (var i = 0; i < bs.length; i++) bs[i].setAttribute('aria-pressed', String(bs[i].getAttribute('data-l') === LANG));
     $('#allbtn').textContent = T('all');
     $('#foot').innerHTML = '<p>' + T('foot1') + '</p>';
+    renderCredits();
     renderMusicBtn();
   }
 
@@ -646,7 +685,7 @@ path.route { stroke: var(--accent); }
   }
 
   /* ---------- soundtrack ---------- */
-  function trackFor(id) { return MUSIC[id] || { title: null, file: '', link: '' }; }
+  function trackFor(id) { return MUSIC[id] || MUSIC_AREA[PLANS[id].area] || { title: null, file: '', link: '', credit: '' }; }
   function renderMusicBtn() {
     var b = $('#music');
     b.setAttribute('aria-pressed', String(musicOn));
@@ -654,7 +693,8 @@ path.route { stroke: var(--accent); }
   }
   function syncAudio() {
     var tr = trackFor(planId);
-    if (!audio) { audio = new Audio(); audio.loop = true; }
+    if (!musicOn) { if (audio) audio.pause(); return; }
+    if (!audio) { audio = new Audio(); audio.loop = true; audio.volume = DEFAULT_VOLUME; }
     if (tr.file) {
       if (audio.getAttribute('data-src') !== tr.file) { audio.setAttribute('data-src', tr.file); audio.src = tr.file; }
       if (musicOn) { var pr = audio.play(); if (pr && pr.catch) pr.catch(function () {}); } else audio.pause();
@@ -710,6 +750,15 @@ path.route { stroke: var(--accent); }
     stopEls = Array.prototype.slice.call(document.querySelectorAll('.stop'));
   }
 
+  function renderCredits() {
+    var seen = {}, rows = [];
+    function add(t) { if (t && t.credit && !seen[t.credit]) { seen[t.credit] = 1; rows.push(t); } }
+    Object.keys(MUSIC).forEach(function (k) { add(MUSIC[k]); });
+    Object.keys(MUSIC_AREA).forEach(function (k) { add(MUSIC_AREA[k]); });
+    $('#credits').innerHTML = rows.length ? '<h3>' + T('creditsH') + '</h3><ul>' + rows.map(function (t) {
+      return '<li>' + (t.link ? '<a href="' + esc(t.link) + '" target="_blank" rel="noopener">' + esc(t.credit) + '</a>' : esc(t.credit)) + '</li>';
+    }).join('') + '</ul>' : '';
+  }
   function renderPicks() {
     var el = $('#picks');
     if (!saved.length) { el.innerHTML = '<h3>' + T('picks') + '</h3><p class="hint">' + T('picksHint') + '</p>'; return; }
